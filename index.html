@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html>
+<style>
+.bar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	background-color: blue;
+	translate: -50% -150%;
+	left: 60%;
+	height: 10px;
+}
+.menu_header {
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-bottom: 5px;
+}
+.submenu {
+	border: 1px solid black;
+	padding: 5px;
+	margin: 3px;
+}
+table {
+	border: 1px solid black;
+	background-color: white;
+}
+th {
+    display: table-cell;
+    vertical-align: inherit;
+    font-weight: normal;
+    text-align: -internal-center;
+    unicode-bidi: isolate;
+	border: 1px solid black;
+}
+td {
+	border: 1px solid black;
+}
+</style>
+<body>
+<div id="main"></div>
+<br>
+<table><thead><tr><th>Year</th><th>Population</th></tr></thead><tbody id="historical_table"></tbody></table>
+</body>
+<script>
+
+// TABLES (STEP TABLE AND POPULATION TABLE)
+
+// Progressive Left
+/*
+pop_table = {
+	"0-4": 1427354,
+	"5-9": 1514959,
+	"10-14": 1624504,
+	"15-19": 1643783,
+	"20-24": 2497730,
+	"25-29": 2601813,
+	"30-34": 1477508,
+	"35-39": 1425996,
+	"40-44": 1361060,
+	"45-49": 1284939,
+	"50-54": 688518,
+	"55-59": 705098,
+	"60-64": 706197,
+	"65-69": 603348,
+	"70-74": 536939,
+	"75-79": 450284,
+	"80-84": 338523,
+	"85-89": 208945,
+	"90-94": 89895,
+	"95-99": 20247,
+	"100+": 1620,
+}*/
+
+// Evangelical
+/*
+pop_table = {
+	"0-4": 3977378,
+	"5-9": 4221494,
+	"10-14": 4526746,
+	"15-19": 4580469,
+	"20-24": 3942495,
+	"25-29": 4106783,
+	"30-34": 4592255,
+	"35-39": 4432151,
+	"40-44": 4230321,
+	"45-49": 3993729,
+	"50-54": 5278639,
+	"55-59": 5405748,
+	"60-64": 5414171,
+	"65-69": 4951886,
+	"70-74": 4037258,
+	"75-79": 2688722,
+	"80-84": 1711833,
+	"85-89": 1122048,
+	"90-94": 482742,
+	"95-99": 108726,
+	"100+": 8698,
+}
+*/
+
+// USA
+
+pop_table = {
+	"0-4": 18549119,
+	"5-9": 20084176,
+	"10-14": 21210394,
+	"15-19": 22767905,
+	"20-24": 22642299,
+	"25-29": 22594600,
+	"30-34": 24344798,
+	"35-39": 23858037,
+	"40-44": 23067087,
+	"45-49": 21020221,
+	"50-54": 20837624,
+	"55-59": 20828139,
+	"60-64": 21691564,
+	"65-69": 19749027,
+	"70-74": 16016684,
+	"75-79": 12105786,
+	"80-84": 7474972,
+	"85-89": 4139390,
+	"90-94": 1864064,
+	"95-99": 510653,
+	"100+": 70019,
+}
+
+
+
+step_table = {
+	"0-4": {
+		"alive": 100,
+		"births": 0,
+		"immigration": 0,
+		"mean": 2,
+		"historical": [],
+	},
+	"5-9": {
+		"alive": 99.2,
+		"births": 0,
+		"immigration": 0,
+		"mean": 7,
+		"historical": [],
+	},
+	"10-14": {
+		"alive": 99.2,
+		"births": 0,
+		"immigration": 0,
+		"mean": 12,
+		"historical": [],
+	},
+	"15-19": {
+		"alive": 99,
+		"births": 13.1,
+		"immigration": 0,
+		"mean": 17,
+		"historical": [],
+	},
+	"20-24": {
+		"alive": 98.4,
+		"births": 57.7,
+		"immigration": 0,
+		"mean": 22,
+		"historical": [],
+	},
+	"25-29": {
+		"alive": 97.6,
+		"births": 91.0,
+		"immigration": 0,
+		"mean": 27,
+		"historical": [],
+	},
+	"30-34": {
+		"alive": 96.5,
+		"births": 94.3,
+		"immigration": 0,
+		"mean": 32,
+		"historical": [],
+	},
+	"35-39": {
+		"alive": 95.2,
+		"births": 54.3,
+		"immigration": 0,
+		"mean": 37,
+		"historical": [],
+	},
+	"40-44": {
+		"alive": 93.7,
+		"births": 12.5,
+		"immigration": 0,
+		"mean": 42,
+		"historical": [],
+	},
+	"45-49": {
+		"alive": 91.8,
+		"births": 1.1,
+		"immigration": 0,
+		"mean": 47,
+		"historical": [],
+	},
+	"50-54": {
+		"alive": 89.4,
+		"births": 0.1,
+		"immigration": 0,
+		"mean": 52,
+		"historical": [],
+	},
+	"55-59": {
+		"alive": 86.0,
+		"births": 0,
+		"immigration": 0,
+		"mean": 57,
+		"historical": [],
+	},
+	"60-64": {
+		"alive": 81.1,
+		"births": 0,
+		"immigration": 0,
+		"mean": 62,
+		"historical": [],
+	},
+	"65-69": {
+		"alive": 74.5,
+		"births": 0,
+		"immigration": 0,
+		"mean": 67,
+		"historical": [],
+	},
+	"70-74": {
+		"alive": 66.3,
+		"births": 0,
+		"immigration": 0,
+		"mean": 72,
+		"historical": [],
+	},
+	"75-79": {
+		"alive": 55.6,
+		"births": 0,
+		"immigration": 0,
+		"mean": 77,
+		"historical": [],
+	},
+	"80-84": {
+		"alive": 41.8,
+		"births": 0,
+		"immigration": 0,
+		"mean": 82,
+		"historical": [],
+	},
+	"85-89": {
+		"alive": 25.8,
+		"births": 0,
+		"immigration": 0,
+		"mean": 87,
+		"historical": [],
+	},
+	"90-94": {
+		"alive": 11.1,
+		"births": 0,
+		"immigration": 0,
+		"mean": 92,
+		"historical": [],
+	},
+	"95-99": {
+		"alive": 2.5,
+		"births": 0,
+		"immigration": 0,
+		"mean": 97,
+		"historical": [],
+	},
+	"100+": {
+		"alive": 0.2,
+		"births": 0,
+		"immigration": 0,
+		"mean": 102,
+		"historical": [],
+	},
+}
+
+// Each one has a "target", then "time".
+// Example: 
+//{
+//	"effect": "immigration",
+//	"age": "0-4",	// N/A for things like TFR.
+//	"target": 100,000,
+//	"steps_remaining": 4,
+//}
+trend_queue = [
+
+]
+
+// APPLY FUNCTIONS
+
+function applylifespan() {
+	for (let age in pop_table) {
+		let temp_life = document.getElementById(`${age}_lifespan_input`).value;
+		if (temp_life != "") {
+			step_table[age]["alive"] = temp_life;
+		}
+	}
+	update_menus();
+}
+
+function check_trend_overlap_push(trend_dict) {
+	for (let trend in trend_queue) {
+		if (trend_queue[trend]["effect"] == trend_dict["effect"] && trend_queue[trend]["age"] == trend_dict["age"]) {
+			trend_queue[trend]["target"] = trend_dict["target"];
+			trend_queue[trend]["steps_remaining"] = trend_dict["steps_remaining"];
+			return
+		}
+	}
+	trend_queue.push(
+		{
+			"effect": trend_dict["effect"],
+			"age": trend_dict["age"],
+			"target": trend_dict["target"],
+			"steps_remaining": trend_dict["steps_remaining"],
+		}
+	);
+}
+
+function clear_birthrate_fields() {
+	document.getElementById('tfr_input').value = '';
+	for (let age in pop_table) {
+		document.getElementById(`${age}_birthrate_input`).value = '';
+	}
+	document.getElementById('gauss_mean_input').value = '';
+	document.getElementById('std_dev_input').value = '';
+}
+
+function apply_birthrate_trend() {
+	let steps_remaining = document.getElementById('trend_input').value;
+	if (steps_remaining == '' || steps_remaining <= 0) {
+		return;
+	}
+	let target_tfr = document.getElementById('tfr_input').value;
+	if (target_tfr != "") {
+		check_trend_overlap_push(
+			{
+				"effect": "TFR",
+				"age": "All",
+				"target": target_tfr,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('tfr_input').value = '';
+	}
+	for (let age in pop_table) {
+		let temp_brth = document.getElementById(`${age}_birthrate_input`).value;
+		if (temp_brth != "") {
+			check_trend_overlap_push(
+				{
+					"effect": "Births",
+					"age": age,
+					"target": temp_brth,
+					"steps_remaining": steps_remaining,
+				}
+			);
+			document.getElementById(`${age}_birthrate_input`).value = '';
+		}
+	}
+	let temp_mean = document.getElementById('gauss_mean_input').value;
+	let temp_std = document.getElementById('std_dev_input').value;
+	if (!isNaN(Number(temp_mean)) && !temp_mean == '') {
+		check_trend_overlap_push(
+			{
+				"effect": "Mean Birth",
+				"age": "All",
+				"target": temp_mean,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		check_trend_overlap_push(
+			{
+				"effect": "Std Dev",
+				"age": "All",
+				"target": temp_std,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('gauss_mean_input').value = '';
+		document.getElementById('std_dev_input').value = '';
+	}
+	if (!isNaN(Number(temp_std)) && !temp_std == '') {
+		temp_std = calc_std_dev();
+	}
+	update_menus();
+}
+
+function set_birthrate(target_tfr) {
+	let relative_tfr = 0;
+	for (let x in step_table) {
+		relative_tfr += step_table[x]["births"];
+	}
+	relative_tfr = relative_tfr*5/1000;
+	for (let x in step_table) {
+		step_table[x]["births"] = step_table[x]["births"]*target_tfr/relative_tfr;
+	}
+}
+tfr = 2.1;
+set_birthrate(2.1);
+
+function apply_gaussian() {
+	let temp_mean = document.getElementById('gauss_mean_input').value;
+	let temp_std = document.getElementById('std_dev_input').value;
+	let tfr = calc_tfr();
+	if (isNaN(Number(temp_mean)) || temp_mean == '') {
+		temp_mean = calc_birth_mean();
+	}
+	if (isNaN(Number(temp_std)) || temp_std == '') {
+		temp_std = calc_std_dev();
+	}
+	for (let age in step_table) {
+		step_table[age]["births"] = gaussian(step_table[age]["mean"], temp_std, temp_mean);
+	}
+	document.getElementById(`gauss_mean_input`).value = '';
+	document.getElementById(`std_dev_input`).value = '';
+	set_birthrate(tfr);
+	update_menus();
+}
+
+function apply_gaussian2(temp_mean,temp_std) {
+	let tfr = calc_tfr();
+	if (isNaN(Number(temp_mean)) || temp_mean == '') {
+		temp_mean = calc_birth_mean();
+	}
+	if (isNaN(Number(temp_std)) || temp_std == '') {
+		temp_std = calc_std_dev();
+	}
+	for (let age in step_table) {
+		step_table[age]["births"] = gaussian(step_table[age]["mean"], temp_std, temp_mean);
+	}
+	set_birthrate(tfr);
+	update_menus();
+}
+
+function applybirthrate() {
+	tfr = document.getElementById('tfr_input').value;
+	if (tfr != "") {
+		set_birthrate(document.getElementById('tfr_input').value);
+		document.getElementById(`tfr_input`).value = '';
+	}
+	for (let age in pop_table) {
+		let temp_brth = document.getElementById(`${age}_birthrate_input`).value;
+		if (temp_brth != "") {
+			step_table[age]["births"] = Number(temp_brth);
+			document.getElementById(`${age}_birthrate_input`).value = '';
+		}
+	}
+	update_menus();
+}
+
+function applyimmigration() {
+	for (let age in pop_table) {
+		let temp_imm = document.getElementById(`${age}_immigration_input`).value;
+		document.getElementById(`${age}_immigration_input`).value = '';
+		if (temp_imm != "") {
+			step_table[age]["immigration"] = temp_imm;
+		}
+	}
+	update_menus();
+}
+
+// MENU SETUP
+
+const immigration_menu = document.createElement('div');
+setup_menu(immigration_menu);
+
+const birthrate_menu = document.createElement('div');
+setup_menu(birthrate_menu);
+
+const trend_menu = document.createElement('div');
+setup_menu(trend_menu);
+
+const lifespan_menu = document.createElement('div');
+setup_menu(lifespan_menu);
+
+function setup_menu(menu) {
+	Object.assign(menu.style, {
+		width: `auto`,
+		height: `auto`,
+		backgroundColor: '#cccccc',
+		color: 'black',
+		textAlign: 'left',
+		lineHeight: '20px',
+		position: 'absolute',
+		top: '20%',
+		left: '10%',
+		cursor: 'move',
+		zIndex: '1000',
+		borderRadius: '5px',
+		boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+		padding: '10px',
+		border: '1.5px solid black',
+		display: 'none',
+	});
+
+	document.body.appendChild(menu);
+
+	let isDragging = false;
+	let offsetX = 0, offsetY = 0;
+
+	menu.addEventListener('mousedown', (e) => {
+		isDragging = true;
+		offsetX = e.clientX - menu.offsetLeft;
+		offsetY = e.clientY - menu.offsetTop;
+		menu.style.transition = 'none'; // Disable transition for smooth dragging
+	});
+
+	document.addEventListener('mousemove', (e) => {
+		if (isDragging) {
+			menu.style.left = `${e.clientX - offsetX}px`;
+			menu.style.top = `${e.clientY - offsetY}px`;
+		}
+	});
+
+	document.addEventListener('mouseup', () => {
+		isDragging = false;
+		menu.style.transition = 'all 0.1s ease'; // Reapply transition for smoother drop
+	});
+}
+
+// CALCULATOR FUNCTIONS
+
+function round_2(num) {
+	if (typeof num == "string" && num.includes("%")) {
+		num = Number(num.slice(0, num.length - 1));
+		num = Math.round(num*100)/100;
+		return `${String(num)}%`;
+	}
+	return Math.round(num*100)/100;
+}
+
+function calc_lifespan() {
+	let prev_mean = 0;
+	let prev_alive = 100;
+	for (let x in step_table) {
+		if (step_table[x]["alive"] < 50) {
+			let mean = step_table[x]["mean"];
+			let alive = step_table[x]["alive"];
+			let temp_value = Math.abs(alive-50)+Math.abs(prev_alive-50);
+			return ((Math.abs(alive-50)*mean+Math.abs(prev_alive-50)*prev_mean)/temp_value);
+		}
+		prev_mean = step_table[x]["mean"];
+		prev_alive = step_table[x]["alive"];
+	}
+}
+
+function calc_tfr() {
+	let temp_tfr = 0;
+	for (let x in step_table) {
+		temp_tfr += step_table[x]["births"];
+	}
+	temp_tfr = temp_tfr*5/1000;
+	return temp_tfr
+}
+
+function calc_birth_mean() {
+	let birth_mean = 0;
+	let birth_sum = 0;
+	for (let age in step_table) {
+		birth_mean += step_table[age]["mean"]*step_table[age]["births"];
+		birth_sum += step_table[age]["births"];
+	}
+	birth_mean = birth_mean/birth_sum;
+	return birth_mean;
+}
+birth_mean = calc_birth_mean();
+
+function calc_std_dev() {
+	let std_dev = 0;
+	let birth_sum = 0;
+	let birth_mean = calc_birth_mean();
+	for (let age in step_table) {
+		std_dev += step_table[age]["births"]*(step_table[age]["mean"]-birth_mean)**2;
+		birth_sum += step_table[age]["births"];
+	}
+	std_dev = Math.sqrt(std_dev/birth_sum);
+	return std_dev;
+}
+std_dev = calc_std_dev();
+
+function gaussian(x, std_dev, mean) {
+	let output = 1/(Math.sqrt(2*Math.PI*std_dev**2));
+	output = output * Math.exp(0-(x-mean)**2/(2*std_dev**2));
+	return output;
+}
+
+function calc_max_value() {
+	max_value = 0;
+	for (let age in pop_table) {
+		if (pop_table[age] > max_value) {
+			max_value = pop_table[age];
+		}
+	}
+	return max_value;
+}
+
+function commify(x) {
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// UPDATE FUNCTIONS
+
+function update_menus() {
+	for (let age in step_table) {
+		step_table[age]["births"] = step_table[age]["births"];
+		document.getElementById(`${age}_birthrate_current`).innerHTML = `(${round_2(step_table[age]["births"])})`;
+		document.getElementById(`${age}_immigration_current`).innerHTML = `(${round_2(step_table[age]["immigration"])})`;
+		document.getElementById(`${age}_lifespan_current`).innerHTML = `(${round_2(step_table[age]["alive"])})`;
+	}
+	document.getElementById("gauss_mean_current").innerHTML = `(${round_2(calc_birth_mean())})`;
+	document.getElementById("std_dev_current").innerHTML = `(${round_2(calc_std_dev())})`;
+	document.getElementById('tfr_current').innerHTML = `(${round_2(calc_tfr())})`;
+	document.getElementById('lifespan_current').innerHTML = `Average Lifespan: (${round_2(calc_lifespan())})`;
+	if (trend_queue.length == 0) {
+		let trendtext = `
+			<h3 class="menu_header">Trend Queue</h3>
+			(There are no trends queued.)
+			<button style="position:absolute;top:0px;right:0px;" 
+				onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Trends')">X</button>`
+		trend_menu.innerHTML = trendtext;
+	} else {
+		let trendtext = `
+			<h3 class="menu_header">Trend Queue</h3>
+			<button style="position:absolute;top:0px;right:0px;" 
+			onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Trends')">X</button>
+			<table><thead>
+			<tr>
+			<th>Move Parameter</th>
+			<th>at Age</th>
+			<th>to Value</th>
+			<th>over Timespan</th>
+			<th></th>
+			</tr>
+			</thead>
+			<tbody id="trend_table"></tbody></table>`;
+		trend_menu.innerHTML = trendtext;
+		let temp_table = ``;
+		for (let trend in trend_queue) {
+			temp_table += `
+				<tr>
+				<th>${trend_queue[trend]["effect"]}</th>
+				<th>${trend_queue[trend]["age"]}</th>
+				<th>${trend_queue[trend]["target"]}</th>
+				<th>${trend_queue[trend]["steps_remaining"]}</th>
+				<th><button onclick="remove_trend(${trend})">Remove</button></th>
+				</tr>`
+		}
+		document.getElementById("trend_table").innerHTML = temp_table;
+	}
+}
+
+function toggle_menu(menu,button,name) {
+	if (menu.style.display == "none") {
+		menu.style.display = "initial";
+		if (name == "Trends") {
+			button.innerHTML = `Hide Allocated Trends`;
+		} else {
+			button.innerHTML = `Close ${name} Menu`;
+		}
+	} else {
+		menu.style.display = "none";
+		if (name == "Trends") {
+			button.innerHTML = `See Queued Trends`;
+		} else {
+			button.innerHTML = `Open ${name} Menu`;
+		}
+	}
+}
+
+function remove_trend(x) {
+	trend_queue = trend_queue.slice(0,x).concat(trend_queue.slice(x+1,trend_queue.length));
+	update_menus();
+}
+
+// INITIAL MENU SETUP
+
+lifetext = `
+	<h3 class="menu_header">Lifespan Menu</h3>
+	<div id="lifespan_current">Average Lifespan: ${round_2(calc_lifespan())}</div><br>
+	Actuarial Tables<br>(% of those born who are alive)<br>
+	<button style="position:absolute;top:0px;right:0px;" 
+		onclick="toggle_menu(lifespan_menu, document.getElementById('lifespan_button'), 'Lifespan')">X</button>`;
+for (let age in pop_table) {
+	lifetext += `
+		<label style="display: inline-block; width:45px;" for="${age}_lifespan_input">${age} </label>
+		<input style="width: 100px;" type="text" id="${age}_lifespan_input"></input>
+		<div id="${age}_lifespan_current" style="display: inline-block; padding-left: 5px;">
+		(${round_2(step_table[age]["alive"])})</div><br>`
+}
+lifetext += `
+	<button onclick="applylifespan()">Apply Life Expectancy</button>`
+lifespan_menu.innerHTML = lifetext;
+
+trendtext = `
+	<h3 class="menu_header">Trend Queue</h3>
+	(There are no trends queued.)
+	<button style="position:absolute;top:0px;right:0px;" 
+		onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Immigration')">X</button>`
+
+trend_menu.innerHTML = trendtext;
+
+immigrationtext = `
+	<h3 class="menu_header">Immigration Menu</h3>Assimilated Inflow/Outflow<br>(Use net # or %)<br>
+	<button style="position:absolute;top:0px;right:0px;" 
+		onclick="toggle_menu(immigration_menu, document.getElementById('immigration_button'), 'Immigration')">X</button>`;
+for (let age in pop_table) {
+	immigrationtext += `
+		<label style="display: inline-block; width:45px;" for="${age}_immigration_input">${age} </label>
+		<input style="width: 100px;" type="text" id="${age}_immigration_input"></input>
+		<div id="${age}_immigration_current" style="display: inline-block; padding-left: 5px;">
+		(${round_2(step_table[age]["immigration"])})</div><br>`
+}
+immigrationtext += `
+	<button onclick="applyimmigration()">Apply Immigration</button>`
+immigration_menu.innerHTML = immigrationtext;
+
+birthratetext = `
+	<h3 class="menu_header">Birthrate Menu</h3>
+	<button style="position:absolute;top:0px;right:0px;" 
+		onclick="toggle_menu(birthrate_menu, document.getElementById('birthrate_button'), 'Birthrate')">X</button>
+	<label style="display: inline-block; width:45px;" for="tfr_input">TFR: </label>
+	<input style="width: 100px;" type="text" id="tfr_input"></input>
+	<div id="tfr_current" style="display: inline-block; padding-left: 5px;">(${round_2(tfr)})</div><br>Birthrate by Age<br>
+`;
+for (let age in pop_table) {
+	birthratetext += `
+		<label style="display: inline-block; width:45px;" for="${age}_birthrate_input">${age} </label>
+		<input style="width: 100px;" type="text" id="${age}_birthrate_input"></input>
+		<div id="${age}_birthrate_current" style="display: inline-block; padding-left: 5px;">(${round_2(step_table[age]["births"])})
+		</div><br>`
+}
+birthratetext += `
+	<button onclick="applybirthrate()">Apply Birthrates</button>
+	<button onclick="clear_birthrate_fields()">Clear Fields</button>`
+
+birthrate_menu.innerHTML = `
+	<div id="birthrate_menu_left" class="submenu" style="float:left"></div>
+	<div id="birthrate_menu_right" class="submenu" style="float:right;":></div>`
+birthrate_menu_left.innerHTML = birthratetext;
+birthrate_menu_right.innerHTML = `
+	<strong>Set Normal<br>Approx:</strong>
+	<br>
+	<br>Mean Age of
+	<br>Childbearing:
+	<br><input style="width: 50px;" type="text" id="gauss_mean_input"></input>
+	<br><div id="gauss_mean_current">(${round_2(birth_mean)})</div>
+	<br>Standard
+	<br>Deviation:
+	<br><input style="width: 50px;" type="text" id="std_dev_input"></input>
+	<br><div id="std_dev_current">(${round_2(std_dev)})</div>
+	<br><button onclick="apply_gaussian()">Apply Approx.</button>
+	<br>
+	<br>
+	<br><strong>Apply Macro<br>Trend:</strong>
+	<br>
+	<br>Trend over
+	<br><input style="width: 50px;" type="text" id="trend_input"></input> years.
+	<br>
+	<br><button onclick="apply_birthrate_trend()">Add Trend</button>`;
+
+// STEP FUNCTIONS
+
+function handle_immigration(age, prev) {
+	if (isNaN(Number(step_table[age]["immigration"]))) {
+		if (step_table[age]["immigration"].includes("%")) {
+			let num_imm = step_table[age]["immigration"];
+			num_imm = Number(num_imm.slice(0,num_imm.length - 1));
+			if (isNaN(Number(num_imm))) {
+				return 0;
+			} else {
+				return (Number(num_imm)/100)*pop_table[prev];
+			}
+		} else {
+			return 0;
+		}
+	} else {
+		return Number(step_table[age]["immigration"]);
+	}
+}
+
+function progress(num, target, remaining) {
+	return (num+5*(target-num)/remaining);
+}
+
+function handle_trends() {
+	let gauss_flag = false;
+	let mean_birth = calc_birth_mean();
+	let std_dev = calc_std_dev();
+	let mean_target = mean_birth;
+	let std_target = std_dev;
+	for (let x in trend_queue) {
+		if (trend_queue[x]["steps_remaining"] <= 0) {
+			remove_trend(x);
+		}
+		let target = trend_queue[x]["target"];
+		let steps_remaining = trend_queue[x]["steps_remaining"];
+		if (trend_queue[x]["effect"] == "TFR") {
+			let tfr = calc_tfr();
+			set_birthrate(progress(tfr,target,steps_remaining));
+		} else if (trend_queue[x]["effect"] == "Births") {
+			let age = trend_queue[x]["age"];
+			step_table[age]["births"] = progress(age,target,steps_remaining);
+		} else if (trend_queue[x]["effect"] == "Mean Birth") {
+			mean_target = trend_queue[x]["target"];
+			if (gauss_flag == false) {
+				gauss_flag = true;
+			} else {
+				apply_gaussian2(progress(mean_birth,mean_target,steps_remaining),
+								progress(std_dev,std_target,steps_remaining));
+			}
+		} else if (trend_queue[x]["effect"] == "Std Dev") {
+			std_target = trend_queue[x]["target"];
+			if (gauss_flag == false) {
+				gauss_flag = true;
+			} else {
+				apply_gaussian2(progress(mean_birth,mean_target,steps_remaining),
+								progress(std_dev,std_target,steps_remaining));
+			}
+		}
+	trend_queue[x]["steps_remaining"] -= 5;	
+	}
+}
+
+function unstep() {
+	if (step_table["0-4"]["historical"].length == 0) {
+		alert("No further history to rewind to!")
+		return;
+	}
+	for (let age in pop_table) {
+		pop_table[age] = step_table[age]["historical"][step_table[age]["historical"].length-1];
+		step_table[age]["historical"] = step_table[age]["historical"].slice(0,-1);
+	}
+	max_value = 0;
+	for (let age in pop_table) {
+		if (pop_table[age] > max_value) {
+			max_value = pop_table[age];
+		}
+	}
+	let total_pop = 0;
+	for (let age in pop_table) {
+		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
+		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
+		total_pop += pop_table[age];
+	}
+	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
+	year -= 5;
+	document.getElementById("historical_table").deleteRow(-1);
+	document.getElementById("year").innerHTML = `Year: ${year}`
+	update_menus();
+}
+
+function step() {
+	handle_trends();
+	let newbirths = 0;
+	let prev = "null";
+	let new_pop_table = {};
+	for (let age in pop_table) {
+		step_table[age]["historical"].push(pop_table[age]);
+		if (age == "0-4") {
+			new_pop_table[age] = "Placeholder";
+		} else if (step_table[prev]["alive"] == 0) {
+			new_pop_table[age] = Math.round(
+				pop_table[prev]*0+
+				handle_immigration(age, prev));
+			new_pop_table[age] = Math.max(new_pop_table[age],0)
+		} else {
+			new_pop_table[age] = Math.round(
+				pop_table[prev]*(step_table[age]["alive"]/step_table[prev]["alive"])+
+				handle_immigration(age, prev));
+			new_pop_table[age] = Math.max(new_pop_table[age],0)
+		}
+		prev = age;
+		
+		newbirths += Math.round(pop_table[age]*step_table[age]["births"]*0.5*5/1000);
+	}
+	pop_table = new_pop_table;
+	pop_table["0-4"] = newbirths;
+	max_value = 0;
+	for (let age in pop_table) {
+		if (pop_table[age] > max_value) {
+			max_value = pop_table[age];
+		}
+	}
+	let total_pop = 0;
+	for (let age in pop_table) {
+		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
+		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
+		total_pop += pop_table[age];
+	}
+	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
+	year += 5;
+	document.getElementById("historical_table").innerHTML += `<tr><th>${year}:</th><th>${commify(total_pop)}</th></tr>`
+	document.getElementById("year").innerHTML = `Year: ${year}`
+	update_menus();
+}
+
+// INITIAL PAGE SETUP
+
+total_pop = 0;
+year = 2025;
+document.getElementById("main").innerHTML += `
+	<div id="year">Year: ${year}</div>
+	<button onclick="step()">Step 5 years</button>
+	<button onclick="unstep()">Reverse 5 years</button><br>
+	<button id="immigration_button" onclick="toggle_menu(immigration_menu,this,'Immigration')">Open Immigration Menu</button>
+	<button id="birthrate_button" onclick="toggle_menu(birthrate_menu,this,'Birthrate')">Open Birthrate Menu</button>
+	<button id="lifespan_button" onclick="toggle_menu(lifespan_menu,this,'Lifespan')">Open Lifespan Menu</button>
+	<button id="trend_button" onclick="toggle_menu(trend_menu,this,'Trends')">See Queued Trends</button>
+`
+calc_max_value();
+for (let age in pop_table) {
+	document.getElementById("main").innerHTML += `
+		<div id=${age}>${age}: ${commify(pop_table[age])}</div>
+		<div id=${age}bar class="bar" style="width:${40*pop_table[age]/max_value}%"></div>`;
+	total_pop += pop_table[age];
+}
+
+document.getElementById("main").innerHTML += `<br><div id="total_pop">Total Population: ${commify(total_pop)}</div>`
+document.getElementById("historical_table").innerHTML += `<tr><th>${year}:</th><th>${commify(total_pop)}</th></tr>`
+
+</script>
+</html> 
