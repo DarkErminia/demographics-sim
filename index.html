@@ -713,10 +713,7 @@ for (let age in pop_table) {
 		(${round_2(step_table[age]["immigration"])})</div><br>`
 }
 immigrationtext += `
-	<label style="display: inline-block; width:45px;" for="all_immigration_input">All </label>
-	<input style="width: 100px;" type="text" id="all_immigration_input"></input>
-	<br>
-	<button onclick="setallimmigration()">Set all</button>`
+	<button onclick="applyimmigration()">Apply Immigration</button>`
 immigration_menu.innerHTML = immigrationtext;
 
 birthratetext = `
