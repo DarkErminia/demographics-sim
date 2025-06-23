@@ -11,6 +11,21 @@
 	left: 60%;
 	height: 10px;
 }
+.menu {
+	width: auto;
+	height: auto;
+	background-color: #cccccc;
+	color: black;
+	text-align: left;
+	line-height: 20px;
+	position: absolute;
+	cursor: move;
+	z-index: 1000;
+	border-radius: 5px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	padding: 10px;
+	border: 1.5px solid black;
+}
 .menu_header {
 	margin-top: 0px;
 	margin-left: 0px;
@@ -24,6 +39,7 @@
 table {
 	border: 1px solid black;
 	background-color: white;
+	border-spacing: 0px;
 }
 th {
     display: table-cell;
@@ -32,6 +48,8 @@ th {
     text-align: -internal-center;
     unicode-bidi: isolate;
 	border: 1px solid black;
+	padding-left: 3px;
+	padding-right: 3px;
 }
 td {
 	border: 1px solid black;
@@ -40,7 +58,6 @@ td {
 <body>
 <div id="main"></div>
 <br>
-<table><thead><tr><th>Year</th><th>Population</th></tr></thead><tbody id="historical_table"></tbody></table>
 </body>
 <script>
 
@@ -136,7 +153,7 @@ step_table = {
 		"historical": [],
 	},
 	"5-9": {
-		"alive": 99.2,
+		"alive": 99.3,
 		"births": 0,
 		"immigration": 0,
 		"mean": 7,
@@ -150,126 +167,126 @@ step_table = {
 		"historical": [],
 	},
 	"15-19": {
-		"alive": 99,
+		"alive": 99.1,
 		"births": 13.1,
 		"immigration": 0,
 		"mean": 17,
 		"historical": [],
 	},
 	"20-24": {
-		"alive": 98.4,
+		"alive": 98.7,
 		"births": 57.7,
 		"immigration": 0,
 		"mean": 22,
 		"historical": [],
 	},
 	"25-29": {
-		"alive": 97.6,
+		"alive": 98.1,
 		"births": 91.0,
 		"immigration": 0,
 		"mean": 27,
 		"historical": [],
 	},
 	"30-34": {
-		"alive": 96.5,
+		"alive": 97.4,
 		"births": 94.3,
 		"immigration": 0,
 		"mean": 32,
 		"historical": [],
 	},
 	"35-39": {
-		"alive": 95.2,
+		"alive": 96.4,
 		"births": 54.3,
 		"immigration": 0,
 		"mean": 37,
 		"historical": [],
 	},
 	"40-44": {
-		"alive": 93.7,
+		"alive": 95.2,
 		"births": 12.5,
 		"immigration": 0,
 		"mean": 42,
 		"historical": [],
 	},
 	"45-49": {
-		"alive": 91.8,
+		"alive": 93.8,
 		"births": 1.1,
 		"immigration": 0,
 		"mean": 47,
 		"historical": [],
 	},
 	"50-54": {
-		"alive": 89.4,
+		"alive": 91.8,
 		"births": 0.1,
 		"immigration": 0,
 		"mean": 52,
 		"historical": [],
 	},
 	"55-59": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"births": 0,
 		"immigration": 0,
 		"mean": 57,
 		"historical": [],
 	},
 	"60-64": {
-		"alive": 81.1,
+		"alive": 85.0,
 		"births": 0,
 		"immigration": 0,
 		"mean": 62,
 		"historical": [],
 	},
 	"65-69": {
-		"alive": 74.5,
+		"alive": 79.4,
 		"births": 0,
 		"immigration": 0,
 		"mean": 67,
 		"historical": [],
 	},
 	"70-74": {
-		"alive": 66.3,
+		"alive": 72.2,
 		"births": 0,
 		"immigration": 0,
 		"mean": 72,
 		"historical": [],
 	},
 	"75-79": {
-		"alive": 55.6,
+		"alive": 62.5,
 		"births": 0,
 		"immigration": 0,
 		"mean": 77,
 		"historical": [],
 	},
 	"80-84": {
-		"alive": 41.8,
+		"alive": 49.1,
 		"births": 0,
 		"immigration": 0,
 		"mean": 82,
 		"historical": [],
 	},
 	"85-89": {
-		"alive": 25.8,
+		"alive": 32.6,
 		"births": 0,
 		"immigration": 0,
 		"mean": 87,
 		"historical": [],
 	},
 	"90-94": {
-		"alive": 11.1,
+		"alive": 15.8,
 		"births": 0,
 		"immigration": 0,
 		"mean": 92,
 		"historical": [],
 	},
 	"95-99": {
-		"alive": 2.5,
+		"alive": 4.5,
 		"births": 0,
 		"immigration": 0,
 		"mean": 97,
 		"historical": [],
 	},
 	"100+": {
-		"alive": 0.2,
+		"alive": 0.6,
 		"births": 0,
 		"immigration": 0,
 		"mean": 102,
@@ -450,6 +467,15 @@ function applybirthrate() {
 	update_menus();
 }
 
+function set_all_immigration() {
+	let temp_imm = document.getElementById(`all_immigration_input`).value;
+	document.getElementById(`all_immigration_input`).value = '';
+	for (let age in pop_table) {
+		document.getElementById(`${age}_immigration_input`).value = temp_imm;
+	}
+	update_menus();
+}
+
 function applyimmigration() {
 	for (let age in pop_table) {
 		let temp_imm = document.getElementById(`${age}_immigration_input`).value;
@@ -476,24 +502,13 @@ const lifespan_menu = document.createElement('div');
 setup_menu(lifespan_menu);
 
 function setup_menu(menu) {
-	Object.assign(menu.style, {
-		width: `auto`,
-		height: `auto`,
-		backgroundColor: '#cccccc',
-		color: 'black',
-		textAlign: 'left',
-		lineHeight: '20px',
-		position: 'absolute',
-		top: '20%',
-		left: '10%',
-		cursor: 'move',
-		zIndex: '1000',
-		borderRadius: '5px',
-		boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-		padding: '10px',
-		border: '1.5px solid black',
-		display: 'none',
-	});
+	
+	menu.className = "menu";
+	menu.style = `
+		left: 10%;
+		top: 10%;
+		display: none;
+		`;
 
 	document.body.appendChild(menu);
 
@@ -594,6 +609,14 @@ function calc_max_value() {
 		}
 	}
 	return max_value;
+}
+
+function calc_total_population() {
+	let total_pop = 0;
+	for (let age in pop_table) {
+		total_pop += pop_table[age];
+	}
+	return total_pop;
 }
 
 function commify(x) {
@@ -702,7 +725,7 @@ trendtext = `
 trend_menu.innerHTML = trendtext;
 
 immigrationtext = `
-	<h3 class="menu_header">Immigration Menu</h3>Assimilated Inflow/Outflow<br>(Use net # or %)<br>
+	<h3 class="menu_header">Immigration Menu</h3>Annual Inflow/Outflow<br>(Use net # or %)<br>
 	<button style="position:absolute;top:0px;right:0px;" 
 		onclick="toggle_menu(immigration_menu, document.getElementById('immigration_button'), 'Immigration')">X</button>`;
 for (let age in pop_table) {
@@ -714,7 +737,15 @@ for (let age in pop_table) {
 }
 immigrationtext += `
 	<button onclick="applyimmigration()">Apply Immigration</button>`
-immigration_menu.innerHTML = immigrationtext;
+immigration_menu.innerHTML = `
+	<div id="immigration_menu_left" class="submenu" style="float:left"></div>
+	<div id="immigration_menu_right" class="submenu" style="float:right;":></div>`;
+immigration_menu_left.innerHTML = immigrationtext;
+immigration_menu_right.innerHTML = `
+	<strong>All Immigration</strong><br><br>
+	Fill all fields:<br>
+	<input style="width: 60px;" type="text" id="all_immigration_input"></input>
+	<br><br><button onclick="set_all_immigration()">Fill All</button>`;
 
 birthratetext = `
 	<h3 class="menu_header">Birthrate Menu</h3>
@@ -854,10 +885,14 @@ function unstep() {
 function step() {
 	handle_trends();
 	let newbirths = 0;
+	let newimmigration = 0;
+	let old_total_pop = 0;
 	let prev = "null";
 	let new_pop_table = {};
+	old_total_pop = calc_total_population();
 	for (let age in pop_table) {
 		step_table[age]["historical"].push(pop_table[age]);
+		newimmigration += handle_immigration("0-4", prev);
 		if (age == "0-4") {
 			new_pop_table[age] = "Placeholder";
 		} else if (step_table[prev]["alive"] == 0) {
@@ -876,22 +911,32 @@ function step() {
 		newbirths += Math.round(pop_table[age]*step_table[age]["births"]*0.5*5/1000);
 	}
 	pop_table = new_pop_table;
-	pop_table["0-4"] = newbirths;
+	pop_table["0-4"] = newbirths+handle_immigration("0-4", prev);
+	new_total_pop = calc_total_population();
+	let total_deaths = old_total_pop + newbirths + newimmigration - new_total_pop;
 	max_value = 0;
 	for (let age in pop_table) {
 		if (pop_table[age] > max_value) {
 			max_value = pop_table[age];
 		}
 	}
-	let total_pop = 0;
 	for (let age in pop_table) {
 		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
 		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
-		total_pop += pop_table[age];
 	}
+	let total_pop = calc_total_population();
+	let tfr = calc_tfr();
 	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
 	year += 5;
-	document.getElementById("historical_table").innerHTML += `<tr><th>${year}:</th><th>${commify(total_pop)}</th></tr>`
+	document.getElementById("historical_table").innerHTML += `
+		<tr>
+		<th>${year}:</th>
+		<th>${commify(total_pop)}</th>
+		<th>${commify(newbirths)}</th>
+		<th>${commify(total_deaths)}</th>
+		<th>${commify(newimmigration)}</th>
+		<th>${round_2(tfr)}</th>
+		</tr>`
 	document.getElementById("year").innerHTML = `Year: ${year}`
 	update_menus();
 }
@@ -914,11 +959,32 @@ for (let age in pop_table) {
 	document.getElementById("main").innerHTML += `
 		<div id=${age}>${age}: ${commify(pop_table[age])}</div>
 		<div id=${age}bar class="bar" style="width:${40*pop_table[age]/max_value}%"></div>`;
-	total_pop += pop_table[age];
 }
-
+total_pop = calc_total_population();
 document.getElementById("main").innerHTML += `<br><div id="total_pop">Total Population: ${commify(total_pop)}</div>`
-document.getElementById("historical_table").innerHTML += `<tr><th>${year}:</th><th>${commify(total_pop)}</th></tr>`
+document.getElementById("main").innerHTML += `
+	<br>
+	<table><thead>
+	<tr>
+	<th>Year</th>
+	<th>Population</th>
+	<th>Births</th>
+	<th>Deaths</th>
+	<th>Immigration</th>
+	<th>TFR</th>
+	</tr></thead>
+	
+	<tbody id="historical_table"></tbody></table>`
+	
+document.getElementById("historical_table").innerHTML += `
+	<tr>
+	<th>${year}:</th>
+	<th>${commify(total_pop)}</th>
+	<th>-</th>
+	<th>-</th>
+	<th>-</th>
+	<th>-</th>
+	</tr>`
 
 </script>
 </html> 
