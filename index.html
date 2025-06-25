@@ -534,6 +534,8 @@ set_birthrate(2.1);
 function apply_gaussian() {
 	let temp_mean = document.getElementById('gauss_mean_input').value;
 	let temp_std = document.getElementById('std_dev_input').value;
+	document.getElementById('gauss_mean_input').value = '';
+	document.getElementById('std_dev_input').value = '';
 	apply_gaussian_core(temp_mean,temp_std);
 }
 
@@ -564,7 +566,11 @@ function apply_gompertz_makeham_core(x) {
 	for (let age in step_table) {
 		let mean_age = step_table[age]["mean"];
 		let output = Math.exp(0-(b/Math.log(c))*(c**(mean_age-1)))*100;
-		step_table[age]["alive"] = output;
+		if (isNaN(step_table[age]["alive"]) == false) {
+			step_table[age]["alive"] = output;
+		} else {
+			console.log(`Error! b: ${b} Output ${output}`);
+		}
 	}
 	update_menus();
 }
@@ -671,7 +677,7 @@ function new_age_bracket() {
 		"births": 0,
 		"immigration": 0,
 		"mean": step_table[highest_age]["mean"]+5,
-		"historical": Array(step_table[highest_age]["historical"]).fill(0),
+		"historical": Array(step_table[highest_age]["historical"].length).fill(0),
 	}
 	pop_table[new_age] = 0;
 	update_age_menu()
@@ -700,7 +706,7 @@ function calc_lifespan() {
 		prev_mean = step_table[x]["mean"];
 		prev_alive = step_table[x]["alive"];
 	}
-	return "N/A"
+	return intended_life_expectancy;
 }
 
 function calc_tfr() {
@@ -769,14 +775,13 @@ function calc_gompertz_makeham(age) {
 	} else {
 		life_expectancy = intended_life_expectancy;
 	}
-	console.log(life_expectancy,age)
 	let c = 1.091;
 	let b = 0-(Math.log(c)*Math.log(0.5)/(c**(life_expectancy-1)));
 	return Math.exp(0-(b/Math.log(c))*(c**(age-1)))*100;
 }
 
 function commify(x) {
-	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // UPDATE FUNCTIONS
@@ -797,13 +802,13 @@ function update_menus() {
 			<h3 class="menu_header">Trend Queue</h3>
 			(There are no trends queued.)
 			<button style="position:absolute;top:0px;right:0px;" 
-				onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Trends')">X</button>`
+				onclick="toggle_menu(trend_menu, document.getElementById('trend_button'), 'Trends')">X</button>`
 		trend_menu.innerHTML = trendtext;
 	} else {
 		let trendtext = `
 			<h3 class="menu_header">Trend Queue</h3>
 			<button style="position:absolute;top:0px;right:0px;" 
-			onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Trends')">X</button>
+				onclick="toggle_menu(trend_menu, document.getElementById('trend_button'), 'Trends')">X</button>
 			<table><thead>
 			<tr>
 			<th>Move Parameter</th>
@@ -831,6 +836,8 @@ function update_menus() {
 }
 
 function toggle_menu(menu,button,name) {
+	menu.style.left = "10%";
+	menu.style.top = "10%";
 	if (menu.style.display == "none") {
 		menu.style.display = "initial";
 		if (name == "Trends") {
@@ -863,11 +870,17 @@ function update_age_menu() {
 }
 
 function age_menu(name, parameter) {
-	menutext = ``
+	let menutext = ``;
+	let type = "";
+	if (name == "immigration") {
+		type = "text";
+	} else {
+		type = "number";
+	}
 	for (let age in pop_table) {
 		menutext += `
 		<label style="display: inline-block; width:60px;" for="${age}_${name}_input">${age} </label>
-		<input style="width: 100px;" type="number" id="${age}_${name}_input"></input>
+		<input style="width: 100px;" type="${type}" id="${age}_${name}_input"></input>
 		<div id="${age}_${name}_current" style="display: inline-block; padding-left: 5px;">
 		(${round_2(step_table[age][parameter])})</div><br>`;
 	}
@@ -913,7 +926,7 @@ trendtext = `
 	<h3 class="menu_header">Trend Queue</h3>
 	(There are no trends queued.)
 	<button style="position:absolute;top:0px;right:0px;" 
-		onclick="toggle_menu(trend_menu, document.getElementById('trend_menu'), 'Immigration')">X</button>`
+		onclick="toggle_menu(trend_menu, document.getElementById('trend_button'), 'Trends')">X</button>`
 
 trend_menu.innerHTML = trendtext;
 
@@ -1047,7 +1060,8 @@ function handle_trends() {
 			}
 		} else if (trend_queue[x]["effect"] == "Life Expectancy") {
 			let life_expectancy = calc_lifespan();
-			apply_gompertz_makeham_core(progress(life_expectancy,target,steps_remaining));
+			intended_life_expectancy = progress(life_expectancy,target,steps_remaining);
+			apply_gompertz_makeham_core(intended_life_expectancy);
 		} else if (trend_queue[x]["effect"] == "Life Table") {
 			let age = trend_queue[x]["age"];
 			let alive = step_table[age]["alive"];
@@ -1088,6 +1102,9 @@ function unstep() {
 		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
 		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
 		total_pop += pop_table[age];
+	}
+	for (x in trend_queue) {
+		trend_queue[x]["steps_remaining"] += 5;
 	}
 	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
 	year -= 5;
@@ -1165,6 +1182,8 @@ function step() {
 		<th>${commify(total_deaths)}</th>
 		<th>${commify(newimmigration)}</th>
 		<th>${round_2(tfr)}</th>
+		<th>${round_2(calc_lifespan())}</th>
+		<th>${round_2(calc_birth_mean())}</th>
 		</tr>`
 	document.getElementById("year").innerHTML = `Year: ${year}`
 	update_menus();
@@ -1201,6 +1220,8 @@ document.getElementById("post_chart").innerHTML += `
 	<th>Deaths</th>
 	<th>Immigration</th>
 	<th>TFR</th>
+	<th>Life Expectancy</th>
+	<th>Mean Childbearing</th>
 	</tr></thead>
 	
 	<tbody id="historical_table"></tbody></table>`
@@ -1213,6 +1234,8 @@ document.getElementById("historical_table").innerHTML += `
 	<th>-</th>
 	<th>-</th>
 	<th>-</th>
+	<th>${round_2(calc_lifespan())}</th>
+	<th>${round_2(calc_birth_mean())}</th>
 	</tr>`
 
 </script>
