@@ -57,6 +57,7 @@ td {
 </style>
 <body>
 <div id="main"></div>
+<div id="post_chart"></div>
 <br>
 </body>
 <script>
@@ -86,7 +87,7 @@ pop_table = {
 	"85-89": 208945,
 	"90-94": 89895,
 	"95-99": 20247,
-	"100+": 1620,
+	"100-104": 1620,
 }*/
 
 // Evangelical
@@ -112,7 +113,7 @@ pop_table = {
 	"85-89": 1122048,
 	"90-94": 482742,
 	"95-99": 108726,
-	"100+": 8698,
+	"100-104": 8698,
 }
 */
 
@@ -139,7 +140,7 @@ pop_table = {
 	"85-89": 4139390,
 	"90-94": 1864064,
 	"95-99": 510653,
-	"100+": 70019,
+	"100-104": 70019,
 }
 
 // Blank (Testing)
@@ -165,7 +166,7 @@ pop_table = {
 	"85-89": 0,
 	"90-94": 0,
 	"95-99": 0,
-	"100+": 0,
+	"100-104": 0,
 }
 */
 
@@ -312,7 +313,7 @@ step_table = {
 		"mean": 97,
 		"historical": [],
 	},
-	"100+": {
+	"100-104": {
 		"alive": 0.6,
 		"births": 0,
 		"immigration": 0,
@@ -370,10 +371,96 @@ function clear_birthrate_fields() {
 	}
 	document.getElementById('gauss_mean_input').value = '';
 	document.getElementById('std_dev_input').value = '';
+	document.getElementById('birthrate_trend_input').value = '';
+}
+
+function clear_lifespan_fields() {
+	for (let age in pop_table) {
+		document.getElementById(`${age}_lifespan_input`).value = '';
+	}
+	document.getElementById('lifespan_input').value = '';
+	document.getElementById('lifespan_trend_input').value = '';
+}
+
+function clear_immigration_fields() {
+	for (let age in pop_table) {
+		document.getElementById(`${age}_immigration_input`).value = '';
+	}
+	document.getElementById('all_immigration_input').value = '';
+}
+
+function apply_immigration_trend() {
+	let steps_remaining = document.getElementById('immigration_trend_input').value;
+	if (steps_remaining == '' || steps_remaining <= 0) {
+		return;
+	}
+	document.getElementById('immigration_trend_input').value = '';
+	let target_all_immigration = document.getElementById('all_immigration_input').value;
+	if (target_all_immigration != "") {
+		check_trend_overlap_push(
+			{
+				"effect": "All Immigration",
+				"age": "All",
+				"target": target_all_immigration,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('all_immigration_input').value = '';
+	}
+	for (let age in pop_table) {
+		let temp_immigration = document.getElementById(`${age}_immigration_input`).value;
+		if (temp_immigration != "") {
+			check_trend_overlap_push(
+				{
+					"effect": "Immigration",
+					"age": age,
+					"target": temp_immigration,
+					"steps_remaining": steps_remaining,
+				}
+			);
+			document.getElementById(`${age}_immigration_input`).value = '';
+		}
+	}
+	update_menus();
+}
+
+function apply_lifespan_trend() {
+	let steps_remaining = document.getElementById('lifespan_trend_input').value;
+	if (steps_remaining == '' || steps_remaining <= 0) {
+		return;
+	}
+	document.getElementById('lifespan_trend_input').value = '';
+	let target_life_expectancy = document.getElementById('lifespan_input').value;
+	if (target_life_expectancy != "") {
+		check_trend_overlap_push(
+			{
+				"effect": "Life Expectancy",
+				"age": "All",
+				"target": target_life_expectancy,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('lifespan_input').value = '';
+	}
+	for (let age in pop_table) {
+		let temp_age_life = document.getElementById(`${age}_lifespan_input`).value;
+		if (temp_age_life != "") {
+			check_trend_overlap_push(
+				{
+					"effect": "Life Table",
+					"age": age,
+					"target": temp_age_life,
+					"steps_remaining": steps_remaining,
+				}
+			);
+			document.getElementById(`${age}_lifespan_input`).value = '';
+		}
+	}
+	update_menus();
 }
 
 function apply_birthrate_trend() {
-	let steps_remaining = document.getElementById('trend_input').value;
+	let steps_remaining = document.getElementById('birthrate_trend_input').value;
 	if (steps_remaining == '' || steps_remaining <= 0) {
 		return;
 	}
@@ -447,6 +534,15 @@ set_birthrate(2.1);
 function apply_gaussian() {
 	let temp_mean = document.getElementById('gauss_mean_input').value;
 	let temp_std = document.getElementById('std_dev_input').value;
+	apply_gaussian_core(temp_mean,temp_std);
+}
+
+function apply_gompertz_makeham() {
+	let life_expectancy = document.getElementById('lifespan_input').value;
+	apply_gompertz_makeham_core(life_expectancy);
+}
+
+function apply_gaussian_core(temp_mean,temp_std) {
 	let tfr = calc_tfr();
 	if (isNaN(Number(temp_mean)) || temp_mean == '') {
 		temp_mean = calc_birth_mean();
@@ -457,24 +553,19 @@ function apply_gaussian() {
 	for (let age in step_table) {
 		step_table[age]["births"] = gaussian(step_table[age]["mean"], temp_std, temp_mean);
 	}
-	document.getElementById(`gauss_mean_input`).value = '';
-	document.getElementById(`std_dev_input`).value = '';
 	set_birthrate(tfr);
 	update_menus();
 }
 
-function apply_gaussian2(temp_mean,temp_std) {
-	let tfr = calc_tfr();
-	if (isNaN(Number(temp_mean)) || temp_mean == '') {
-		temp_mean = calc_birth_mean();
-	}
-	if (isNaN(Number(temp_std)) || temp_std == '') {
-		temp_std = calc_std_dev();
-	}
+function apply_gompertz_makeham_core(x) {
+	intended_life_expectancy = x;
+	let c = 1.091;
+	let b = 0-(Math.log(c)*Math.log(0.5)/(c**(x-1)));
 	for (let age in step_table) {
-		step_table[age]["births"] = gaussian(step_table[age]["mean"], temp_std, temp_mean);
+		let mean_age = step_table[age]["mean"];
+		let output = Math.exp(0-(b/Math.log(c))*(c**(mean_age-1)))*100;
+		step_table[age]["alive"] = output;
 	}
-	set_birthrate(tfr);
 	update_menus();
 }
 
@@ -498,7 +589,7 @@ function set_all_immigration() {
 	let temp_imm = document.getElementById(`all_immigration_input`).value;
 	document.getElementById(`all_immigration_input`).value = '';
 	for (let age in pop_table) {
-		document.getElementById(`${age}_immigration_input`).value = temp_imm;
+		step_table[age]["immigration"] = temp_imm;
 	}
 	update_menus();
 }
@@ -564,6 +655,29 @@ function setup_menu(menu) {
 
 // CALCULATOR FUNCTIONS
 
+function new_age_bracket() {
+	let max_value = 0;
+	let highest_age = "";
+	for (let age in step_table) {
+		if (step_table[age]["mean"] > max_value) {
+			max_value = step_table[age]["mean"];
+			highest_age = age;
+		}
+	}
+	let temp_array = highest_age.split("-");
+	let new_age = String(Number(temp_array[0])+5)+"-"+String(Number(temp_array[1])+5);
+	step_table[new_age] = {
+		"alive": calc_gompertz_makeham(step_table[highest_age]["mean"]+5),
+		"births": 0,
+		"immigration": 0,
+		"mean": step_table[highest_age]["mean"]+5,
+		"historical": Array(step_table[highest_age]["historical"]).fill(0),
+	}
+	pop_table[new_age] = 0;
+	update_age_menu()
+	return new_age;
+}
+
 function round_2(num) {
 	if (typeof num == "string" && num.includes("%")) {
 		num = Number(num.slice(0, num.length - 1));
@@ -586,6 +700,7 @@ function calc_lifespan() {
 		prev_mean = step_table[x]["mean"];
 		prev_alive = step_table[x]["alive"];
 	}
+	return "N/A"
 }
 
 function calc_tfr() {
@@ -646,6 +761,20 @@ function calc_total_population() {
 	return total_pop;
 }
 
+intended_life_expectancy = "null";
+function calc_gompertz_makeham(age) {
+	let life_expectancy = "null";
+	if (intended_life_expectancy == "null") {
+		life_expectancy = calc_lifespan();
+	} else {
+		life_expectancy = intended_life_expectancy;
+	}
+	console.log(life_expectancy,age)
+	let c = 1.091;
+	let b = 0-(Math.log(c)*Math.log(0.5)/(c**(life_expectancy-1)));
+	return Math.exp(0-(b/Math.log(c))*(c**(age-1)))*100;
+}
+
 function commify(x) {
 	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -662,7 +791,7 @@ function update_menus() {
 	document.getElementById("gauss_mean_current").innerHTML = `(${round_2(calc_birth_mean())})`;
 	document.getElementById("std_dev_current").innerHTML = `(${round_2(calc_std_dev())})`;
 	document.getElementById('tfr_current').innerHTML = `(${round_2(calc_tfr())})`;
-	document.getElementById('lifespan_current').innerHTML = `Average Lifespan: (${round_2(calc_lifespan())})`;
+	document.getElementById('lifespan_current').innerHTML = `(${round_2(calc_lifespan())})`;
 	if (trend_queue.length == 0) {
 		let trendtext = `
 			<h3 class="menu_header">Trend Queue</h3>
@@ -724,24 +853,61 @@ function remove_trend(x) {
 	update_menus();
 }
 
+function update_age_menu() {
+	let life_agetext = age_menu("lifespan","alive");
+	lifespan_age_div.innerHTML = life_agetext;
+	let immigration_agetext = age_menu("immigration","immigration");
+	immigration_age_div.innerHTML = immigration_agetext;
+	let birthrate_agetext = age_menu("birthrate","births");
+	birthrate_age_div.innerHTML = birthrate_agetext;
+}
+
+function age_menu(name, parameter) {
+	menutext = ``
+	for (let age in pop_table) {
+		menutext += `
+		<label style="display: inline-block; width:60px;" for="${age}_${name}_input">${age} </label>
+		<input style="width: 100px;" type="number" id="${age}_${name}_input"></input>
+		<div id="${age}_${name}_current" style="display: inline-block; padding-left: 5px;">
+		(${round_2(step_table[age][parameter])})</div><br>`;
+	}
+	return menutext;
+}
+
 // INITIAL MENU SETUP
 
 lifetext = `
 	<h3 class="menu_header">Lifespan Menu</h3>
-	<div id="lifespan_current">Average Lifespan: ${round_2(calc_lifespan())}</div><br>
 	Actuarial Tables<br>(% of those born who are alive)<br>
 	<button style="position:absolute;top:0px;right:0px;" 
-		onclick="toggle_menu(lifespan_menu, document.getElementById('lifespan_button'), 'Lifespan')">X</button>`;
-for (let age in pop_table) {
-	lifetext += `
-		<label style="display: inline-block; width:45px;" for="${age}_lifespan_input">${age} </label>
-		<input style="width: 100px;" type="text" id="${age}_lifespan_input"></input>
-		<div id="${age}_lifespan_current" style="display: inline-block; padding-left: 5px;">
-		(${round_2(step_table[age]["alive"])})</div><br>`
-}
+		onclick="toggle_menu(lifespan_menu, document.getElementById('lifespan_button'), 'Lifespan')">X</button>
+	<div id="lifespan_age_div"></div>`;
+
+life_agetext = ``;
+
+life_agetext = age_menu("lifespan","alive");
+
 lifetext += `
-	<button onclick="applylifespan()">Apply Life Expectancy</button>`
-lifespan_menu.innerHTML = lifetext;
+	<button onclick="applylifespan()">Apply Life Table</button>
+	<button onclick="clear_lifespan_fields()">Clear Fields</button>`;
+lifespan_menu.innerHTML = `
+	<div id="lifespan_menu_left" class="submenu" style="float:left"></div>
+	<div id="lifespan_menu_right" class="submenu" style="float:right;":></div>`;
+lifespan_menu_left.innerHTML = lifetext;
+lifespan_age_div.innerHTML = life_agetext;
+lifespan_menu_right.innerHTML = `
+	<strong>New Lifespan</strong><br>(Using Gompertz-<br>Makeham approx.)<br><br>Current Life Ex.
+	<br><input style="width: 40px;" type="number" id="lifespan_input"></input>
+	<div id="lifespan_current" style="display: inline-block; padding-left: 5px;">
+	(${round_2(calc_lifespan())})</div>
+	<br><br><button onclick="apply_gompertz_makeham()">Apply Life Expect.</button>
+	<br><br><strong>Apply Macro<br>Trend</strong>
+	<br>
+	<br>Trend over
+	<br><input style="width: 50px;" type="number" id="lifespan_trend_input"></input> years.
+	<br>
+	<br><button onclick="apply_lifespan_trend()">Add Trend</button>`;
+
 
 trendtext = `
 	<h3 class="menu_header">Trend Queue</h3>
@@ -754,41 +920,45 @@ trend_menu.innerHTML = trendtext;
 immigrationtext = `
 	<h3 class="menu_header">Immigration Menu</h3>Annual Inflow/Outflow<br>(Use net # or %)<br>
 	<button style="position:absolute;top:0px;right:0px;" 
-		onclick="toggle_menu(immigration_menu, document.getElementById('immigration_button'), 'Immigration')">X</button>`;
-for (let age in pop_table) {
-	immigrationtext += `
-		<label style="display: inline-block; width:45px;" for="${age}_immigration_input">${age} </label>
-		<input style="width: 100px;" type="text" id="${age}_immigration_input"></input>
-		<div id="${age}_immigration_current" style="display: inline-block; padding-left: 5px;">
-		(${round_2(step_table[age]["immigration"])})</div><br>`
-}
+		onclick="toggle_menu(immigration_menu, document.getElementById('immigration_button'), 'Immigration')">X</button>
+	<div id="immigration_age_div"></div>`;
+	
+immigration_agetext = age_menu("immigration","immigration");
+
 immigrationtext += `
-	<button onclick="applyimmigration()">Apply Immigration</button>`
+	<button onclick="applyimmigration()">Apply Immigration</button>
+	<button onclick="clear_immigration_fields()">Clear Fields</button>`
 immigration_menu.innerHTML = `
 	<div id="immigration_menu_left" class="submenu" style="float:left"></div>
 	<div id="immigration_menu_right" class="submenu" style="float:right;":></div>`;
 immigration_menu_left.innerHTML = immigrationtext;
+immigration_age_div.innerHTML = immigration_agetext;
 immigration_menu_right.innerHTML = `
 	<strong>All Immigration</strong><br><br>
-	Fill all fields:<br>
+	Set all<br>immigration<br>
 	<input style="width: 60px;" type="text" id="all_immigration_input"></input>
-	<br><br><button onclick="set_all_immigration()">Fill All</button>`;
+	<br><br><button onclick="set_all_immigration()">Apply Immigration</button>
+	<br>
+	<br>
+	<br><strong>Apply Macro<br>Trend:</strong>
+	<br>
+	<br>Trend over
+	<br><input style="width: 50px;" type="number" id="immigration_trend_input"></input> years.
+	<br>
+	<br><button onclick="apply_immigration_trend()">Add Trend</button>`;
 
 birthratetext = `
 	<h3 class="menu_header">Birthrate Menu</h3>
 	<button style="position:absolute;top:0px;right:0px;" 
 		onclick="toggle_menu(birthrate_menu, document.getElementById('birthrate_button'), 'Birthrate')">X</button>
 	<label style="display: inline-block; width:45px;" for="tfr_input">TFR: </label>
-	<input style="width: 100px;" type="text" id="tfr_input"></input>
+	<input style="width: 100px;" type="number" id="tfr_input"></input>
 	<div id="tfr_current" style="display: inline-block; padding-left: 5px;">(${round_2(tfr)})</div><br>Birthrate by Age<br>
+	<div id="birthrate_age_div"></div>
 `;
-for (let age in pop_table) {
-	birthratetext += `
-		<label style="display: inline-block; width:45px;" for="${age}_birthrate_input">${age} </label>
-		<input style="width: 100px;" type="text" id="${age}_birthrate_input"></input>
-		<div id="${age}_birthrate_current" style="display: inline-block; padding-left: 5px;">(${round_2(step_table[age]["births"])})
-		</div><br>`
-}
+
+birthrate_agetext = age_menu("birthrate","births");
+
 birthratetext += `
 	<button onclick="applybirthrate()">Apply Birthrates</button>
 	<button onclick="clear_birthrate_fields()">Clear Fields</button>`
@@ -797,16 +967,18 @@ birthrate_menu.innerHTML = `
 	<div id="birthrate_menu_left" class="submenu" style="float:left"></div>
 	<div id="birthrate_menu_right" class="submenu" style="float:right;":></div>`
 birthrate_menu_left.innerHTML = birthratetext;
+birthrate_age_div.innerHTML = birthrate_agetext;
+
 birthrate_menu_right.innerHTML = `
 	<strong>Set Normal<br>Approx:</strong>
 	<br>
 	<br>Mean Age of
 	<br>Childbearing:
-	<br><input style="width: 50px;" type="text" id="gauss_mean_input"></input>
+	<br><input style="width: 50px;" type="number" id="gauss_mean_input"></input>
 	<br><div id="gauss_mean_current">(${round_2(birth_mean)})</div>
 	<br>Standard
 	<br>Deviation:
-	<br><input style="width: 50px;" type="text" id="std_dev_input"></input>
+	<br><input style="width: 50px;" type="number" id="std_dev_input"></input>
 	<br><div id="std_dev_current">(${round_2(std_dev)})</div>
 	<br><button onclick="apply_gaussian()">Apply Approx.</button>
 	<br>
@@ -814,13 +986,13 @@ birthrate_menu_right.innerHTML = `
 	<br><strong>Apply Macro<br>Trend:</strong>
 	<br>
 	<br>Trend over
-	<br><input style="width: 50px;" type="text" id="trend_input"></input> years.
+	<br><input style="width: 60px;" type="number" id="birthrate_trend_input"></input> years.
 	<br>
 	<br><button onclick="apply_birthrate_trend()">Add Trend</button>`;
 
 // STEP FUNCTIONS
 
-function handle_immigration(age, prev) {
+function handle_immigration(age) {
 	if (isNaN(Number(step_table[age]["immigration"]))) {
 		if (step_table[age]["immigration"].includes("%")) {
 			let num_imm = step_table[age]["immigration"];
@@ -828,13 +1000,13 @@ function handle_immigration(age, prev) {
 			if (isNaN(Number(num_imm))) {
 				return 0;
 			} else {
-				return (Number(num_imm)/100)*pop_table[prev]*5;
+				return Math.round((Number(num_imm)/100)*pop_table[age]*5);
 			}
 		} else {
 			return 0;
 		}
 	} else {
-		return Number(step_table[age]["immigration"])*5;
+		return Math.round(Number(step_table[age]["immigration"])*5);
 	}
 }
 
@@ -849,9 +1021,6 @@ function handle_trends() {
 	let mean_target = mean_birth;
 	let std_target = std_dev;
 	for (let x in trend_queue) {
-		if (trend_queue[x]["steps_remaining"] <= 0) {
-			remove_trend(x);
-		}
 		let target = trend_queue[x]["target"];
 		let steps_remaining = trend_queue[x]["steps_remaining"];
 		if (trend_queue[x]["effect"] == "TFR") {
@@ -865,7 +1034,7 @@ function handle_trends() {
 			if (gauss_flag == false) {
 				gauss_flag = true;
 			} else {
-				apply_gaussian2(progress(mean_birth,mean_target,steps_remaining),
+				apply_gaussian_core(progress(mean_birth,mean_target,steps_remaining),
 								progress(std_dev,std_target,steps_remaining));
 			}
 		} else if (trend_queue[x]["effect"] == "Std Dev") {
@@ -873,11 +1042,29 @@ function handle_trends() {
 			if (gauss_flag == false) {
 				gauss_flag = true;
 			} else {
-				apply_gaussian2(progress(mean_birth,mean_target,steps_remaining),
+				apply_gaussian_core(progress(mean_birth,mean_target,steps_remaining),
 								progress(std_dev,std_target,steps_remaining));
 			}
+		} else if (trend_queue[x]["effect"] == "Life Expectancy") {
+			let life_expectancy = calc_lifespan();
+			apply_gompertz_makeham_core(progress(life_expectancy,target,steps_remaining));
+		} else if (trend_queue[x]["effect"] == "Life Table") {
+			let age = trend_queue[x]["age"];
+			let alive = step_table[age]["alive"];
+			step_table[age]["alive"] = progress(alive,target,steps_remaining);
+		} else if (trend_queue[x]["effect"] == "Immigration") {
+			let age = trend_queue[x]["age"];
+			step_table[age]["immigration"] = progress(alive,target,steps_remaining);
 		}
-	trend_queue[x]["steps_remaining"] -= 5;	
+		trend_queue[x]["steps_remaining"] -= 5;
+	}
+	let x = 0;
+	while (x < trend_queue.length) {
+		if (trend_queue[x]["steps_remaining"] <= 0) {
+			remove_trend(x);
+		} else {
+			x++;
+		}
 	}
 }
 
@@ -919,46 +1106,61 @@ function step() {
 	old_total_pop = calc_total_population();
 	for (let age in pop_table) {
 		step_table[age]["historical"].push(pop_table[age]);
-		newimmigration += handle_immigration(age, prev);
 		if (age == "0-4") {
 			new_pop_table[age] = "Placeholder";
 		} else if (step_table[prev]["alive"] == 0) {
-			new_pop_table[age] = Math.round(
-				pop_table[prev]*0+
-				handle_immigration(age, prev));
-			new_pop_table[age] = Math.max(new_pop_table[age],0)
+			new_pop_table[age] = 0;
 		} else {
 			new_pop_table[age] = Math.round(
-				pop_table[prev]*(step_table[age]["alive"]/step_table[prev]["alive"])+
-				handle_immigration(age, prev));
+				pop_table[prev]*(step_table[age]["alive"]/step_table[prev]["alive"]));
 			new_pop_table[age] = Math.max(new_pop_table[age],0)
 		}
 		prev = age;
-		
 		newbirths += Math.round(pop_table[age]*step_table[age]["births"]*0.5*5/1000);
 	}
+	new_pop_table["0-4"] = newbirths;
+	let max_value = 0;
+	let highest_age = "";
+	for (let age in step_table) {
+		if (step_table[age]["mean"] > max_value) {
+			max_value = step_table[age]["mean"];
+			highest_age = age;
+		}
+	}
+	if (step_table[highest_age]["alive"] > 0.1 && pop_table[highest_age] > 0) {
+		let new_age = new_age_bracket();
+		new_pop_table[new_age] = Math.round(
+			pop_table[highest_age]*(step_table[new_age]["alive"]/step_table[highest_age]["alive"]));
+		document.getElementById("main").innerHTML += `
+			<div id=${new_age}>${new_age}: ${commify(pop_table[new_age])}</div>
+			<div id=${new_age}bar class="bar" style="width:${40*pop_table[new_age]/max_value}%"></div>`;
+	}
 	pop_table = new_pop_table;
-	pop_table["0-4"] = newbirths+handle_immigration("0-4", prev);
-	new_total_pop = calc_total_population();
-	let total_deaths = old_total_pop + newbirths + newimmigration - new_total_pop;
+	pre_immigration_pop = calc_total_population();
+	let total_deaths = old_total_pop + newbirths - pre_immigration_pop;
+	for (let age in pop_table) {
+		pop_table[age] += handle_immigration(age);
+		newimmigration += handle_immigration(age);
+	}
+	pre_immigration_pop = calc_total_population();
 	max_value = 0;
 	for (let age in pop_table) {
 		if (pop_table[age] > max_value) {
 			max_value = pop_table[age];
 		}
 	}
+	new_total_pop = calc_total_population();
 	for (let age in pop_table) {
 		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
 		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
 	}
-	let total_pop = calc_total_population();
 	let tfr = calc_tfr();
-	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
+	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(new_total_pop)}`
 	year += 5;
 	document.getElementById("historical_table").innerHTML += `
 		<tr>
 		<th>${year}:</th>
-		<th>${commify(total_pop)}</th>
+		<th>${commify(new_total_pop)}</th>
 		<th>${commify(newbirths)}</th>
 		<th>${commify(total_deaths)}</th>
 		<th>${commify(newimmigration)}</th>
@@ -988,8 +1190,8 @@ for (let age in pop_table) {
 		<div id=${age}bar class="bar" style="width:${40*pop_table[age]/max_value}%"></div>`;
 }
 total_pop = calc_total_population();
-document.getElementById("main").innerHTML += `<br><div id="total_pop">Total Population: ${commify(total_pop)}</div>`
-document.getElementById("main").innerHTML += `
+document.getElementById("post_chart").innerHTML += `<br><div id="total_pop">Total Population: ${commify(total_pop)}</div>`
+document.getElementById("post_chart").innerHTML += `
 	<br>
 	<table><thead>
 	<tr>
