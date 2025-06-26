@@ -178,147 +178,210 @@ step_table = {
 		"births": 0,
 		"immigration": 0,
 		"mean": 2,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"5-9": {
 		"alive": 99.3,
 		"births": 0,
 		"immigration": 0,
 		"mean": 7,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"10-14": {
 		"alive": 99.2,
 		"births": 0,
 		"immigration": 0,
 		"mean": 12,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"15-19": {
 		"alive": 99.1,
 		"births": 13.1,
 		"immigration": 0,
 		"mean": 17,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"20-24": {
 		"alive": 98.7,
 		"births": 57.7,
 		"immigration": 0,
 		"mean": 22,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"25-29": {
 		"alive": 98.1,
 		"births": 91.0,
 		"immigration": 0,
 		"mean": 27,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"30-34": {
 		"alive": 97.4,
 		"births": 94.3,
 		"immigration": 0,
 		"mean": 32,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"35-39": {
 		"alive": 96.4,
 		"births": 54.3,
 		"immigration": 0,
 		"mean": 37,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"40-44": {
 		"alive": 95.2,
 		"births": 12.5,
 		"immigration": 0,
 		"mean": 42,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"45-49": {
 		"alive": 93.8,
 		"births": 1.1,
 		"immigration": 0,
 		"mean": 47,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"50-54": {
 		"alive": 91.8,
 		"births": 0.1,
 		"immigration": 0,
 		"mean": 52,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"55-59": {
 		"alive": 89.0,
 		"births": 0,
 		"immigration": 0,
 		"mean": 57,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"60-64": {
 		"alive": 85.0,
 		"births": 0,
 		"immigration": 0,
 		"mean": 62,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"65-69": {
 		"alive": 79.4,
 		"births": 0,
 		"immigration": 0,
 		"mean": 67,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"70-74": {
 		"alive": 72.2,
 		"births": 0,
 		"immigration": 0,
 		"mean": 72,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"75-79": {
 		"alive": 62.5,
 		"births": 0,
 		"immigration": 0,
 		"mean": 77,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"80-84": {
 		"alive": 49.1,
 		"births": 0,
 		"immigration": 0,
 		"mean": 82,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"85-89": {
 		"alive": 32.6,
 		"births": 0,
 		"immigration": 0,
 		"mean": 87,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"90-94": {
 		"alive": 15.8,
 		"births": 0,
 		"immigration": 0,
 		"mean": 92,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"95-99": {
 		"alive": 4.5,
 		"births": 0,
 		"immigration": 0,
 		"mean": 97,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 	"100-104": {
 		"alive": 0.6,
 		"births": 0,
 		"immigration": 0,
 		"mean": 102,
-		"historical": [],
+		"historical_pop": [],
+		"historical_birth": [],
+		"historical_alive": [],
+		"historical_immigration": [],
 	},
 }
 
@@ -342,6 +405,9 @@ function applylifespan() {
 		if (temp_life != "") {
 			step_table[age]["alive"] = temp_life;
 		}
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
 	}
 	update_menus();
 }
@@ -421,6 +487,9 @@ function apply_immigration_trend() {
 			document.getElementById(`${age}_immigration_input`).value = '';
 		}
 	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
+	}
 	update_menus();
 }
 
@@ -455,6 +524,9 @@ function apply_lifespan_trend() {
 			);
 			document.getElementById(`${age}_lifespan_input`).value = '';
 		}
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
 	}
 	update_menus();
 }
@@ -515,6 +587,9 @@ function apply_birthrate_trend() {
 	if (!isNaN(Number(temp_std)) && !temp_std == '') {
 		temp_std = calc_std_dev();
 	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
+	}
 	update_menus();
 }
 
@@ -556,6 +631,9 @@ function apply_gaussian_core(temp_mean,temp_std) {
 		step_table[age]["births"] = gaussian(step_table[age]["mean"], temp_std, temp_mean);
 	}
 	set_birthrate(tfr);
+	if (historical_index < 0) {
+		changing_history_flag = true;
+	}
 	update_menus();
 }
 
@@ -571,6 +649,9 @@ function apply_gompertz_makeham_core(x) {
 		} else {
 			console.log(`Error! b: ${b} Output ${output}`);
 		}
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
 	}
 	update_menus();
 }
@@ -588,6 +669,9 @@ function applybirthrate() {
 			document.getElementById(`${age}_birthrate_input`).value = '';
 		}
 	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
+	}
 	update_menus();
 }
 
@@ -596,6 +680,9 @@ function set_all_immigration() {
 	document.getElementById(`all_immigration_input`).value = '';
 	for (let age in pop_table) {
 		step_table[age]["immigration"] = temp_imm;
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
 	}
 	update_menus();
 }
@@ -607,6 +694,9 @@ function applyimmigration() {
 		if (temp_imm != "") {
 			step_table[age]["immigration"] = temp_imm;
 		}
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
 	}
 	update_menus();
 }
@@ -677,7 +767,10 @@ function new_age_bracket() {
 		"births": 0,
 		"immigration": 0,
 		"mean": step_table[highest_age]["mean"]+5,
-		"historical": Array(step_table[highest_age]["historical"].length).fill(0),
+		"historical_pop": Array(step_table[highest_age]["historical_pop"].length).fill(0),
+		"historical_birth": Array(step_table[highest_age]["historical_pop"].length).fill(0),
+		"historical_alive": Array(step_table[highest_age]["historical_pop"].length).fill(0),
+		"historical_immigration": Array(step_table[highest_age]["historical_pop"].length).fill(0),
 	}
 	pop_table[new_age] = 0;
 	update_age_menu()
@@ -1082,15 +1175,61 @@ function handle_trends() {
 	}
 }
 
+function add_historical_entry() {
+	let current_historical_slide = step_table["0-4"]["historical_pop"].length+historical_index;
+	for (let age in pop_table) {
+		step_table[age]["historical_pop"].push(pop_table[age]);
+		step_table[age]["historical_birth"].push(step_table[age]["births"]);
+		step_table[age]["historical_alive"].push(step_table[age]["alive"]);
+		step_table[age]["historical_immigration"].push(step_table[age]["immigration"]);
+	}
+}
+
+function update_chart() {
+	let max_value = 0;
+	for (let age in pop_table) {
+		if (pop_table[age] > max_value) {
+			max_value = pop_table[age];
+		}
+	}
+	total_pop = 0;
+	for (let age in pop_table) {
+		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
+		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
+		total_pop += pop_table[age];
+	}
+	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
+	document.getElementById("year").innerHTML = `Year: ${year}`
+}
+
+// This is how far back you are in the historical index.
+historical_index = 0;
+changing_history_flag = false;
+
+function load_from_history() {
+	let current_historical_slide = step_table["0-4"]["historical_pop"].length+historical_index;
+	for (let age in pop_table) {
+		pop_table[age] = step_table[age]["historical_pop"][current_historical_slide];
+		step_table[age]["alive"] = step_table[age]["historical_alive"][current_historical_slide];
+		step_table[age]["births"] = step_table[age]["historical_birth"][current_historical_slide];
+		step_table[age]["immigration"] = step_table[age]["historical_immigration"][current_historical_slide];
+	}
+}
+
 function unstep() {
-	if (step_table["0-4"]["historical"].length == 0) {
+	if (historical_index == 0) {
+		add_historical_entry();
+		historical_index -= 1;
+	}
+	historical_index -= 1;
+	let current_historical_slide = step_table["0-4"]["historical_pop"].length+historical_index;
+	if (current_historical_slide == -1) {
 		alert("No further history to rewind to!")
+		historical_index += 1;
 		return;
 	}
-	for (let age in pop_table) {
-		pop_table[age] = step_table[age]["historical"][step_table[age]["historical"].length-1];
-		step_table[age]["historical"] = step_table[age]["historical"].slice(0,-1);
-	}
+	console.log(historical_index);
+	load_from_history()
 	max_value = 0;
 	for (let age in pop_table) {
 		if (pop_table[age] > max_value) {
@@ -1098,22 +1237,52 @@ function unstep() {
 		}
 	}
 	let total_pop = 0;
-	for (let age in pop_table) {
-		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
-		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
-		total_pop += pop_table[age];
-	}
 	for (x in trend_queue) {
 		trend_queue[x]["steps_remaining"] += 5;
 	}
-	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
 	year -= 5;
-	document.getElementById("historical_table").deleteRow(-1);
-	document.getElementById("year").innerHTML = `Year: ${year}`
+	// document.getElementById("historical_table").deleteRow(-1);
+	update_chart();
 	update_menus();
 }
 
 function step() {
+	if (changing_history_flag == true) {
+		for (age in step_table) {
+			step_table[age]["historical_pop"].slice(0,historical_index+1);
+			step_table[age]["historical_birth"].slice(0,historical_index+1);
+			step_table[age]["historical_alive"].slice(0,historical_index+1);
+			step_table[age]["historical_immigration"].slice(0,historical_index+1);
+		}
+		for (let x = 0; x < -historical_index-1; x++) {
+			historical_table.deleteRow(-1);
+		}
+		historical_index = 0;
+	}
+	if (historical_index == -1 || historical_index == 0) {
+		new_step();
+		console.log("new step");
+	} else {
+		historical_index += 1;
+		console.log("historical step");
+		load_from_history()
+	}
+	console.log(historical_index);
+	year += 5;
+	update_chart()
+}
+
+function new_step() {
+	if (historical_index == 0) {
+		for (let age in pop_table) {
+			step_table[age]["historical_pop"].push(pop_table[age]);
+			step_table[age]["historical_birth"].push(step_table[age]["births"]);
+			step_table[age]["historical_alive"].push(step_table[age]["alive"]);
+			step_table[age]["historical_immigration"].push(step_table[age]["immigration"]);
+		}
+	} else {
+		historical_index += 1;
+	}
 	handle_trends();
 	let newbirths = 0;
 	let newimmigration = 0;
@@ -1122,7 +1291,6 @@ function step() {
 	let new_pop_table = {};
 	old_total_pop = calc_total_population();
 	for (let age in pop_table) {
-		step_table[age]["historical"].push(pop_table[age]);
 		if (age == "0-4") {
 			new_pop_table[age] = "Placeholder";
 		} else if (step_table[prev]["alive"] == 0) {
@@ -1167,16 +1335,10 @@ function step() {
 		}
 	}
 	new_total_pop = calc_total_population();
-	for (let age in pop_table) {
-		document.getElementById(age).innerHTML = `${age}: ${commify(pop_table[age])}`;
-		document.getElementById(`${age}bar`).style.width = `${40*pop_table[age]/max_value}%`;
-	}
 	let tfr = calc_tfr();
-	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(new_total_pop)}`
-	year += 5;
 	document.getElementById("historical_table").innerHTML += `
 		<tr>
-		<th>${year}:</th>
+		<th>${year+5}:</th>
 		<th>${commify(new_total_pop)}</th>
 		<th>${commify(newbirths)}</th>
 		<th>${commify(total_deaths)}</th>
@@ -1185,7 +1347,7 @@ function step() {
 		<th>${round_2(calc_lifespan())}</th>
 		<th>${round_2(calc_birth_mean())}</th>
 		</tr>`
-	document.getElementById("year").innerHTML = `Year: ${year}`
+	update_chart();
 	update_menus();
 }
 
