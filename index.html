@@ -36,6 +36,11 @@
 	padding: 5px;
 	margin: 3px;
 }
+.age_menu {
+	max-height:64vh;
+	overflow-y: scroll;
+	scrollbar-width: thin;
+}
 table {
 	border: 1px solid black;
 	background-color: white;
@@ -987,7 +992,7 @@ lifetext = `
 	Actuarial Tables<br>(% of those born who are alive)<br>
 	<button style="position:absolute;top:0px;right:0px;" 
 		onclick="toggle_menu(lifespan_menu, document.getElementById('lifespan_button'), 'Lifespan')">X</button>
-	<div id="lifespan_age_div"></div>`;
+	<div id="lifespan_age_div" class="age_menu"></div>`;
 
 life_agetext = ``;
 
@@ -1027,7 +1032,7 @@ immigrationtext = `
 	<h3 class="menu_header">Immigration Menu</h3>Annual Inflow/Outflow<br>(Use net # or %)<br>
 	<button style="position:absolute;top:0px;right:0px;" 
 		onclick="toggle_menu(immigration_menu, document.getElementById('immigration_button'), 'Immigration')">X</button>
-	<div id="immigration_age_div"></div>`;
+	<div id="immigration_age_div" class="age_menu"></div>`;
 	
 immigration_agetext = age_menu("immigration","immigration");
 
@@ -1060,7 +1065,7 @@ birthratetext = `
 	<label style="display: inline-block; width:45px;" for="tfr_input">TFR: </label>
 	<input style="width: 100px;" type="number" id="tfr_input"></input>
 	<div id="tfr_current" style="display: inline-block; padding-left: 5px;">(${round_2(tfr)})</div><br>Birthrate by Age<br>
-	<div id="birthrate_age_div"></div>
+	<div id="birthrate_age_div" class="age_menu"></div>
 `;
 
 birthrate_agetext = age_menu("birthrate","births");
@@ -1199,7 +1204,6 @@ function update_chart() {
 		total_pop += pop_table[age];
 	}
 	document.getElementById("total_pop").innerHTML = `Total Population: ${commify(total_pop)}`
-	document.getElementById("year").innerHTML = `Year: ${year}`
 }
 
 // This is how far back you are in the historical index.
@@ -1243,16 +1247,17 @@ function unstep() {
 	year -= 5;
 	// document.getElementById("historical_table").deleteRow(-1);
 	update_chart();
+	document.getElementById("year").innerHTML = `Year: ${year} (Historical)`
 	update_menus();
 }
 
 function step() {
 	if (changing_history_flag == true) {
 		for (age in step_table) {
-			step_table[age]["historical_pop"].slice(0,historical_index+1);
-			step_table[age]["historical_birth"].slice(0,historical_index+1);
-			step_table[age]["historical_alive"].slice(0,historical_index+1);
-			step_table[age]["historical_immigration"].slice(0,historical_index+1);
+			step_table[age]["historical_pop"] = step_table[age]["historical_pop"].slice(0,historical_index);
+			step_table[age]["historical_birth"] = step_table[age]["historical_birth"].slice(0,historical_index);
+			step_table[age]["historical_alive"] = step_table[age]["historical_alive"].slice(0,historical_index);
+			step_table[age]["historical_immigration"] = step_table[age]["historical_immigration"].slice(0,historical_index);
 		}
 		for (let x = 0; x < -historical_index-1; x++) {
 			historical_table.deleteRow(-1);
@@ -1260,16 +1265,18 @@ function step() {
 		historical_index = 0;
 		changing_history_flag = false;
 	}
+	year += 5;
 	if (historical_index == -1 || historical_index == 0) {
 		new_step();
 		console.log("new step");
+		document.getElementById("year").innerHTML = `Year: ${year}`
 	} else {
 		historical_index += 1;
 		console.log("historical step");
 		load_from_history()
+		document.getElementById("year").innerHTML = `Year: ${year} (Historical)`
 	}
 	console.log(historical_index);
-	year += 5;
 	update_chart()
 }
 
@@ -1339,7 +1346,7 @@ function new_step() {
 	let tfr = calc_tfr();
 	document.getElementById("historical_table").innerHTML += `
 		<tr>
-		<th>${year+5}:</th>
+		<th>${year}:</th>
 		<th>${commify(new_total_pop)}</th>
 		<th>${commify(newbirths)}</th>
 		<th>${commify(total_deaths)}</th>
