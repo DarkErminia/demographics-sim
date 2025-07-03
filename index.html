@@ -67,6 +67,8 @@ td {
 </body>
 <script>
 
+
+
 // TABLES (STEP TABLE AND POPULATION TABLE)
 
 // Progressive Left
@@ -147,6 +149,89 @@ pop_table = {
 	"95-99": 510653,
 	"100-104": 70019,
 }
+
+// South Korea 2025
+
+/*
+pop_table = {
+	"0-4": 1248136,
+	"5-9": 1750166,
+	"10-14": 2274042,
+	"15-19": 2308760,
+	"20-24": 2706125,
+	"25-29": 3450653,
+	"30-34": 3648033,
+	"35-39": 3288572,
+	"40-44": 3847098,
+	"45-49": 3867854,
+	"50-54": 4327522,
+	"55-59": 4300330,
+	"60-64": 4145609,
+	"65-69": 3686048,
+	"70-74": 2498759,
+	"75-79": 1790867,
+	"80-84": 1322883,
+	"85-89": 789214,
+	"90-94": 324688,
+	"95-99": 80247,
+	"100-104": 11415,
+}
+*/
+
+// North Korea 2025
+/*
+pop_table = {
+	"0-4": 1740000,
+	"5-9": 1746000,
+	"10-14": 1680000,
+	"15-19": 1666000,
+	"20-24": 1786000,
+	"25-29": 1968000,
+	"30-34": 2014000,
+	"35-39": 1886000,
+	"40-44": 1750000,
+	"45-49": 1606000,
+	"50-54": 2020000,
+	"55-59": 2040000,
+	"60-64": 1520000,
+	"65-69": 1226000,
+	"70-74": 760000,
+	"75-79": 674000,
+	"80-84": 430000,
+	"85-89": 180000,
+	"90-94": 44000,
+	"95-99": 5700,
+	"100-104": 0,
+}
+*/
+
+// USA 2010 (Backtesting)
+
+/*
+pop_table = {
+	"0-4": 20705172,
+	"5-9": 20318527,
+	"10-14": 20255190,
+	"15-19": 21847554,
+	"20-24": 22319125,
+	"25-29": 21886026,
+	"30-34": 20656400,
+	"35-39": 20263503,
+	"40-44": 21125496,
+	"45-49": 22863041,
+	"50-54": 22356967,
+	"55-59": 19677191,
+	"60-64": 16833316,
+	"65-69": 12432155,
+	"70-74": 9162203,
+	"75-79": 7272296,
+	"80-84": 5640411,
+	"85-89": 3541098,
+	"90-94": 1466222,
+	"95-99": 383298,
+	"100-104": 57587,
+}
+*/
 
 // Blank (Testing)
 /*
@@ -389,6 +474,43 @@ step_table = {
 		"historical_immigration": [],
 	},
 }
+
+/*
+pop_string = `113100739
+117849384
+123236044
+126709179
+129802300
+125442774
+119778228
+113171270
+102039924
+88399549
+76959687
+65130782
+54262569
+42982194
+30844608
+17977752
+9614000
+4635100
+1566872
+324570
+37987
+`;
+create_pop_table();
+
+function create_pop_table() {
+	pop_table = {};
+	let temp_list = pop_string.split("\n");
+	let counter = 0;
+	for (let age in step_table) {
+		pop_table[age] = Number(temp_list[counter]);
+		counter += 1;
+	}
+}
+*/
+
 
 // Each one has a "target", then "time".
 // Example: 
@@ -1122,6 +1244,23 @@ function handle_immigration(age) {
 }
 
 function progress(num, target, remaining) {
+	/*
+	if (num.includes("%")) {
+		num = Number(num.slice(0,num.length - 1));
+		num_%_flag = true:
+	}
+	if (String(target).includes("%")) {
+		target = Number(target.slice(0,target.length - 1));
+		if (isNaN(Number(target))) {
+			target = 0;
+		} else {
+			target = Math.round((Number(target)/100)*pop_table[age]*5);
+		}
+	}
+	*/
+	num = Number(num);
+	target = Number(target);
+	remaining = Number(remaining);
 	return (num+5*(target-num)/remaining);
 }
 
@@ -1166,7 +1305,13 @@ function handle_trends() {
 			step_table[age]["alive"] = progress(alive,target,steps_remaining);
 		} else if (trend_queue[x]["effect"] == "Immigration") {
 			let age = trend_queue[x]["age"];
-			step_table[age]["immigration"] = progress(alive,target,steps_remaining);
+			let imm = step_table[age]["immigration"];
+			step_table[age]["immigration"] = progress(imm,target,steps_remaining);
+		} else if (trend_queue[x]["effect"] == "All Immigration") {
+			for (let age in step_table) {
+				let imm = step_table[age]["immigration"];
+				step_table[age]["immigration"] = progress(imm,target,steps_remaining);
+			}
 		}
 		trend_queue[x]["steps_remaining"] -= 5;
 	}
@@ -1232,7 +1377,7 @@ function unstep() {
 		historical_index += 1;
 		return;
 	}
-	console.log(historical_index);
+	//console.log(historical_index);
 	load_from_history()
 	max_value = 0;
 	for (let age in pop_table) {
@@ -1268,15 +1413,15 @@ function step() {
 	year += 5;
 	if (historical_index == -1 || historical_index == 0) {
 		new_step();
-		console.log("new step");
+		//console.log("new step");
 		document.getElementById("year").innerHTML = `Year: ${year}`
 	} else {
 		historical_index += 1;
-		console.log("historical step");
+		//console.log("historical step");
 		load_from_history()
 		document.getElementById("year").innerHTML = `Year: ${year} (Historical)`
 	}
-	console.log(historical_index);
+	//console.log(historical_index);
 	update_chart()
 }
 
