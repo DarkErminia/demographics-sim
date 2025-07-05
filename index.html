@@ -61,7 +61,8 @@ td {
 }
 </style>
 <body>
-<div id="main"></div>
+<div id="control_menu"></div>
+<div id="chart"></div>
 <div id="post_chart"></div>
 <br>
 </body>
@@ -1006,6 +1007,170 @@ function commify(x) {
 
 // UPDATE FUNCTIONS
 
+function export_data() {
+	export_html = `
+<html>
+	<head>
+	<style>
+		.bar {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			position: absolute;
+			background-color: blue;
+			translate: -50% -150%;
+			left: 60%;
+			height: 10px;
+		}
+		.menu {
+			width: auto;
+			height: auto;
+			background-color: #cccccc;
+			color: black;
+			text-align: left;
+			line-height: 20px;
+			position: absolute;
+			cursor: move;
+			z-index: 1000;
+			border-radius: 5px;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			padding: 10px;
+			border: 1.5px solid black;
+		}
+		.menu_header {
+			margin-top: 0px;
+			margin-left: 0px;
+			margin-bottom: 5px;
+		}
+		.submenu {
+			border: 1px solid black;
+			padding: 5px;
+			margin: 3px;
+		}
+		.age_menu {
+			max-height:64vh;
+			overflow-y: scroll;
+			scrollbar-width: thin;
+		}
+		table {
+			border: 1px solid black;
+			background-color: white;
+			border-spacing: 0px;
+		}
+		th {
+			display: table-cell;
+			vertical-align: inherit;
+			font-weight: normal;
+			text-align: -internal-center;
+			unicode-bidi: isolate;
+			border: 1px solid black;
+			padding-left: 3px;
+			padding-right: 3px;
+		}
+		td {
+			border: 1px solid black;
+		}
+	</style>
+	</head>`;
+	export_html += `
+	<body>
+	<div id="year">Year: ${year-5*(step_table["0-4"]["historical_pop"].length-1)}</div>
+	<button onclick="unstep()">Reverse 5 years</button>
+	<button onclick="step()">Step 5 years</button>`;
+	let max_value = 0;
+	for (let age in step_table) {
+		if (step_table[age]["historical_pop"][0]>max_value) {
+			max_value = step_table[age]["historical_pop"][0];
+		}
+	}
+	export_history_table = `historical_pop_table = {`;
+	export_pop_table = `pop_table = {`;
+	for (let age in step_table) {
+		let first_pop = step_table[age]["historical_pop"][0];
+		export_html += `
+	<div id=${age}>${age}: ${commify(first_pop)}</div>
+	<div id=${age}bar class="bar" style="width:${40*first_pop/max_value}%"></div>`;
+		export_history_table += `
+	"${age}": [${step_table[age]["historical_pop"]}],`;
+		export_pop_table += `
+	"${age}": [${step_table[age]["historical_pop"][0]}],`;
+	}
+	export_history_table += `}`
+	export_pop_table += `}`
+	let script1 = "<script>";
+	let script2 = "</"+"script>";
+	export_html += `<br>`;
+	export_html += document.getElementById("post_chart").innerHTML;
+	export_html += `
+${script1}
+year = ${year-5*(step_table["0-4"]["historical_pop"].length-1)};
+index = 0;
+${export_history_table}
+${export_pop_table}
+function update_chart() {
+	let max_value = 0;
+	for (let age in pop_table) {
+		if (pop_table[age] > max_value) {
+			max_value = pop_table[age];
+		}
+	}
+	total_pop = 0;
+	for (let age in pop_table) {
+		document.getElementById(age).innerHTML = \`\${age}: \${commify(pop_table[age])}\`;
+		document.getElementById(\`\${age}bar\`).style.width = \`\${40*pop_table[age]/max_value}%\`;
+		total_pop += pop_table[age];
+	}
+	document.getElementById("total_pop").innerHTML = \`Total Population: \${commify(total_pop)}\`;
+	document.getElementById("year").innerHTML = \`Year: \${year}\`;
+}
+
+function step() {
+	index += 1;
+	if (historical_pop_table["0-4"].length <= index) {
+		index -= 1;
+		alert("End of file.");
+	} else {
+		year += 5;
+		for (let age in pop_table) {
+			pop_table[age] = historical_pop_table[age][index];
+		}
+		update_chart();
+	}
+}
+
+function unstep() {
+	index -= 1;
+	if (index == -1) {
+		index += 1;
+		alert("Cannot go before beginning.");
+	} else {
+		year -= 5;
+		for (let age in pop_table) {
+			pop_table[age] = historical_pop_table[age][index];
+		}
+		update_chart();
+	}
+}
+
+function commify(x) {
+	return String(x).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");
+}
+${script2}
+`;
+	// ********************************
+	
+	let blob = new Blob([export_html], { type: 'text/html' });
+	let a = document.createElement('a');
+	let url = URL.createObjectURL(blob);
+	a.href = url;
+	a.download = "export";
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
+	
+}
+
 function update_menus() {
 	for (let age in step_table) {
 		step_table[age]["births"] = step_table[age]["births"];
@@ -1108,6 +1273,13 @@ function age_menu(name, parameter) {
 }
 
 // INITIAL MENU SETUP
+
+for (let age in step_table) {
+	step_table[age]["historical_pop"].push(pop_table[age]);
+	step_table[age]["historical_birth"].push(step_table[age]["births"]);
+	step_table[age]["historical_immigration"].push(step_table[age]["immigration"]);
+	step_table[age]["historical_alive"].push(step_table[age]["alive"]);
+}
 
 lifetext = `
 	<h3 class="menu_header">Lifespan Menu</h3>
@@ -1244,24 +1416,30 @@ function handle_immigration(age) {
 }
 
 function progress(num, target, remaining) {
-	/*
-	if (num.includes("%")) {
+	let num_percent_flag = false;
+	let target_percent_flag = false;
+	if (String(num).includes("%")) {
 		num = Number(num.slice(0,num.length - 1));
-		num_%_flag = true:
+		num_percent_flag = true;
 	}
 	if (String(target).includes("%")) {
 		target = Number(target.slice(0,target.length - 1));
-		if (isNaN(Number(target))) {
-			target = 0;
-		} else {
-			target = Math.round((Number(target)/100)*pop_table[age]*5);
-		}
+		target_percent_flag = true;
 	}
-	*/
-	num = Number(num);
-	target = Number(target);
-	remaining = Number(remaining);
-	return (num+5*(target-num)/remaining);
+	if (num_percent_flag && target_percent_flag) {
+		return String(num+5*(target-num)/remaining)+"%";
+	} else {
+		if (num_percent_flag) {
+			num = age_reference_pop*num/100
+		}
+		if (target_percent_flag) {
+			target = age_reference_pop*target/100
+		}
+		num = Number(num);
+		target = Number(target);
+		remaining = Number(remaining);
+		return (num+5*(target-num)/remaining);
+	}
 }
 
 function handle_trends() {
@@ -1306,10 +1484,12 @@ function handle_trends() {
 		} else if (trend_queue[x]["effect"] == "Immigration") {
 			let age = trend_queue[x]["age"];
 			let imm = step_table[age]["immigration"];
+			age_reference_pop = pop_table[age];
 			step_table[age]["immigration"] = progress(imm,target,steps_remaining);
 		} else if (trend_queue[x]["effect"] == "All Immigration") {
 			for (let age in step_table) {
 				let imm = step_table[age]["immigration"];
+				age_reference_pop = pop_table[age];
 				step_table[age]["immigration"] = progress(imm,target,steps_remaining);
 			}
 		}
@@ -1352,7 +1532,7 @@ function update_chart() {
 }
 
 // This is how far back you are in the historical index.
-historical_index = 0;
+historical_index = -1;
 changing_history_flag = false;
 
 function load_from_history() {
@@ -1366,10 +1546,6 @@ function load_from_history() {
 }
 
 function unstep() {
-	if (historical_index == 0) {
-		add_historical_entry();
-		historical_index -= 1;
-	}
 	historical_index -= 1;
 	let current_historical_slide = step_table["0-4"]["historical_pop"].length+historical_index;
 	if (current_historical_slide == -1) {
@@ -1377,7 +1553,6 @@ function unstep() {
 		historical_index += 1;
 		return;
 	}
-	//console.log(historical_index);
 	load_from_history()
 	max_value = 0;
 	for (let age in pop_table) {
@@ -1390,7 +1565,7 @@ function unstep() {
 		trend_queue[x]["steps_remaining"] += 5;
 	}
 	year -= 5;
-	// document.getElementById("historical_table").deleteRow(-1);
+	//console.log(historical_index);
 	update_chart();
 	document.getElementById("year").innerHTML = `Year: ${year} (Historical)`
 	update_menus();
@@ -1398,20 +1573,21 @@ function unstep() {
 
 function step() {
 	if (changing_history_flag == true) {
+		let current_historical_slide = step_table["0-4"]["historical_pop"].length+historical_index;
 		for (age in step_table) {
-			step_table[age]["historical_pop"] = step_table[age]["historical_pop"].slice(0,historical_index);
-			step_table[age]["historical_birth"] = step_table[age]["historical_birth"].slice(0,historical_index);
-			step_table[age]["historical_alive"] = step_table[age]["historical_alive"].slice(0,historical_index);
-			step_table[age]["historical_immigration"] = step_table[age]["historical_immigration"].slice(0,historical_index);
+			step_table[age]["historical_pop"] = step_table[age]["historical_pop"].slice(0,current_historical_slide + 1);
+			step_table[age]["historical_birth"] = step_table[age]["historical_birth"].slice(0,current_historical_slide + 1);
+			step_table[age]["historical_alive"] = step_table[age]["historical_alive"].slice(0,current_historical_slide + 1);
+			step_table[age]["historical_immigration"] = step_table[age]["historical_immigration"].slice(0,current_historical_slide + 1);
 		}
 		for (let x = 0; x < -historical_index-1; x++) {
 			historical_table.deleteRow(-1);
 		}
-		historical_index = 0;
+		historical_index = -1;
 		changing_history_flag = false;
 	}
 	year += 5;
-	if (historical_index == -1 || historical_index == 0) {
+	if (historical_index == -1) {
 		new_step();
 		//console.log("new step");
 		document.getElementById("year").innerHTML = `Year: ${year}`
@@ -1426,16 +1602,6 @@ function step() {
 }
 
 function new_step() {
-	if (historical_index == 0) {
-		for (let age in pop_table) {
-			step_table[age]["historical_pop"].push(pop_table[age]);
-			step_table[age]["historical_birth"].push(step_table[age]["births"]);
-			step_table[age]["historical_alive"].push(step_table[age]["alive"]);
-			step_table[age]["historical_immigration"].push(step_table[age]["immigration"]);
-		}
-	} else {
-		historical_index += 1;
-	}
 	handle_trends();
 	let newbirths = 0;
 	let newimmigration = 0;
@@ -1469,7 +1635,7 @@ function new_step() {
 		let new_age = new_age_bracket();
 		new_pop_table[new_age] = Math.round(
 			pop_table[highest_age]*(step_table[new_age]["alive"]/step_table[highest_age]["alive"]));
-		document.getElementById("main").innerHTML += `
+		document.getElementById("chart").innerHTML += `
 			<div id=${new_age}>${new_age}: ${commify(pop_table[new_age])}</div>
 			<div id=${new_age}bar class="bar" style="width:${40*pop_table[new_age]/max_value}%"></div>`;
 	}
@@ -1502,16 +1668,19 @@ function new_step() {
 		</tr>`
 	update_chart();
 	update_menus();
+	add_historical_entry()
 }
 
 // INITIAL PAGE SETUP
 
 total_pop = 0;
 year = 2025;
-document.getElementById("main").innerHTML += `
+document.getElementById("control_menu").innerHTML += `
 	<div id="year">Year: ${year}</div>
 	<button onclick="step()">Step 5 years</button>
-	<button onclick="unstep()">Reverse 5 years</button><br>
+	<button onclick="unstep()">Reverse 5 years</button>
+	<button onclick="export_data()">Export Data</button>
+	<br>
 	<button id="immigration_button" onclick="toggle_menu(immigration_menu,this,'Immigration')">Open Immigration Menu</button>
 	<button id="birthrate_button" onclick="toggle_menu(birthrate_menu,this,'Birthrate')">Open Birthrate Menu</button>
 	<button id="lifespan_button" onclick="toggle_menu(lifespan_menu,this,'Lifespan')">Open Lifespan Menu</button>
@@ -1519,7 +1688,7 @@ document.getElementById("main").innerHTML += `
 `
 calc_max_value();
 for (let age in pop_table) {
-	document.getElementById("main").innerHTML += `
+	document.getElementById("chart").innerHTML += `
 		<div id=${age}>${age}: ${commify(pop_table[age])}</div>
 		<div id=${age}bar class="bar" style="width:${40*pop_table[age]/max_value}%"></div>`;
 }
