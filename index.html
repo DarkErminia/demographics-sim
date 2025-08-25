@@ -72,6 +72,32 @@ td {
 
 // TABLES (STEP TABLE AND POPULATION TABLE)
 
+// China
+/*
+pop_table = {
+	"0-4": 51957550,
+	"5-9": 85155014,
+	"10-14": 90089721,
+	"15-19": 83122050,
+	"20-24": 79419261,
+	"25-29": 84469585,
+	"30-34": 106100623,
+	"35-39": 117534783,
+	"40-44": 100324439,
+	"45-49": 94342884,
+	"50-54": 119866421,
+	"55-59": 114749626,
+	"60-64": 84042031,
+	"65-69": 74194892,
+	"70-74": 62187884,
+	"75-79": 36029339,
+	"80-84": 20655143,
+	"85-89": 10753605,
+	"90-94": 3679390,
+	"95-99": 603844,
+	"100-104": 43182,
+}
+*/
 // Progressive Left
 /*
 pop_table = {
@@ -178,6 +204,7 @@ pop_table = {
 	"100-104": 11415,
 }
 */
+
 
 // North Korea 2025
 /*
@@ -527,6 +554,21 @@ trend_queue = [
 
 // APPLY FUNCTIONS
 
+function apply_dependency() {
+	if (document.getElementById(`working_age_input`).value != '') {
+		working_age = document.getElementById(`working_age_input`).value;
+	}
+	if (document.getElementById(`retirement_age_input`).value != '') {
+		retirement_age = document.getElementById(`retirement_age_input`).value;
+	}
+	update_menus();
+}
+
+function clear_dependency_fields() {
+	document.getElementById(`working_age_input`).value = '';
+	document.getElementById(`retirement_age_current`).value = '';
+}
+
 function applylifespan() {
 	for (let age in pop_table) {
 		let temp_life = document.getElementById(`${age}_lifespan_input`).value;
@@ -581,6 +623,42 @@ function clear_immigration_fields() {
 		document.getElementById(`${age}_immigration_input`).value = '';
 	}
 	document.getElementById('all_immigration_input').value = '';
+}
+
+function apply_dependency_trend() {
+	let steps_remaining = document.getElementById('dependency_trend_input').value;
+	if (steps_remaining == '' || steps_remaining <= 0) {
+		return;
+	}
+	document.getElementById('dependency_trend_input').value = '';
+	let target_working_age = document.getElementById('working_age_input').value;
+	if (target_working_age != "") {
+		check_trend_overlap_push(
+			{
+				"effect": "Age of Majority",
+				"age": "All",
+				"target": target_working_age,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('target_working_age').value = '';
+	}
+	let target_retirement_age = document.getElementById('retirement_age_input').value;
+	if (target_retirement_age != "") {
+		check_trend_overlap_push(
+			{
+				"effect": "Retirement Age",
+				"age": "All",
+				"target": target_retirement_age,
+				"steps_remaining": steps_remaining,
+			}
+		);
+		document.getElementById('retirement_age_input').value = '';
+	}
+	if (historical_index < 0) {
+		changing_history_flag = true;
+	}
+	update_menus();
 }
 
 function apply_immigration_trend() {
@@ -843,6 +921,9 @@ setup_menu(trend_menu);
 const lifespan_menu = document.createElement('div');
 setup_menu(lifespan_menu);
 
+const dependency_menu = document.createElement('div');
+setup_menu(dependency_menu);
+
 function setup_menu(menu) {
 	
 	menu.className = "menu";
@@ -878,6 +959,30 @@ function setup_menu(menu) {
 }
 
 // CALCULATOR FUNCTIONS
+
+function calc_dependency_ratio() {
+	let non_dependents = 0;
+	let dependents = 0;
+	for (let age in pop_table) {
+		if (step_table[age]["mean"]+2.5 < retirement_age && step_table[age]["mean"]-2.5 > working_age) {
+			non_dependents += pop_table[age];
+		} else if (step_table[age]["mean"]+2.5 > retirement_age || step_table[age]["mean"]-2.5 < working_age) {
+			dependents += pop_table[age];
+		} else {
+			let r_distance = Math.abs(step_table[age]["mean"]-retirement_age)
+			let w_distance = Math.abs(step_table[age]["mean"]-working_age)
+			if (r_distance < 2.5) {
+				dependents += (0.5+(step_table[age]["mean"]-retirement_age)/5)
+				non_dependents += (0.5-(step_table[age]["mean"]-retirement_age)/5)
+			}
+			if (w_distance < 2.5) {
+				dependents += (0.5-(step_table[age]["mean"]-working_age)/5)
+				non_dependents += (0.5+(step_table[age]["mean"]-working_age)/5)
+			}
+		}
+	}
+	return round_2(dependents/non_dependents);
+}
 
 function new_age_bracket() {
 	let max_value = 0;
@@ -1182,6 +1287,8 @@ function update_menus() {
 	document.getElementById("std_dev_current").innerHTML = `(${round_2(calc_std_dev())})`;
 	document.getElementById('tfr_current').innerHTML = `(${round_2(calc_tfr())})`;
 	document.getElementById('lifespan_current').innerHTML = `(${round_2(calc_lifespan())})`;
+	document.getElementById('retirement_age_current').innerHTML = `(${round_2(retirement_age)})`;
+	document.getElementById('working_age_current').innerHTML = `(${round_2(working_age)})`;
 	if (trend_queue.length == 0) {
 		let trendtext = `
 			<h3 class="menu_header">Trend Queue</h3>
@@ -1395,6 +1502,37 @@ birthrate_menu_right.innerHTML = `
 	<br>
 	<br><button onclick="apply_birthrate_trend()">Add Trend</button>`;
 
+dependency_menu.innerHTML = `
+	<div id="dependency_menu_left" class="submenu" style="float:left"></div>
+	<div id="dependency_menu_right" class="submenu" style="float:right;":></div>	
+`
+
+working_age = 15;
+retirement_age = 67;
+
+dependency_menu_left.innerHTML = `
+	<strong>Dependency Menu</strong>
+	<br>
+	<br>Start of Working Age:
+	<br><input style="width: 50px;" type="number" id="working_age_input"></input>
+	<div id="working_age_current" style="display: inline-block; padding-left: 5px;">(${round_2(working_age)})</div>
+	<br>Age of Retirement:
+	<br><input style="width: 50px;" type="number" id="retirement_age_input"></input>
+	<div id="retirement_age_current" style="display: inline-block; padding-left: 5px;">(${round_2(retirement_age)})</div>
+	<br>
+	<br><button onclick="apply_dependency()">Apply Dependency</button>
+	<button onclick="clear_dependency_fields()">Clear Fields</button>
+	`
+
+dependency_menu_right.innerHTML = `
+	<strong>Macro Trend:</strong>
+	<br>
+	<br>Trend over
+	<br><input style="width: 60px;" type="number" id="dependency_trend_input"></input> years.
+	<br>
+	<br><button onclick="apply_dependency_trend()">Add Trend</button>`
+
+
 // STEP FUNCTIONS
 
 function handle_immigration(age) {
@@ -1451,7 +1589,11 @@ function handle_trends() {
 	for (let x in trend_queue) {
 		let target = trend_queue[x]["target"];
 		let steps_remaining = trend_queue[x]["steps_remaining"];
-		if (trend_queue[x]["effect"] == "TFR") {
+		if (trend_queue[x]["effect"] == "Working Age") {
+			working_age = progress(working_age,target,steps_remaining);
+		} else if (trend_queue[x]["effect"] == "Retirement Age") {
+			retirement_age = progress(retirement_age,target,steps_remaining);
+		} else if (trend_queue[x]["effect"] == "TFR") {
 			let tfr = calc_tfr();
 			set_birthrate(progress(tfr,target,steps_remaining));
 		} else if (trend_queue[x]["effect"] == "Births") {
@@ -1665,6 +1807,8 @@ function new_step() {
 		<th>${round_2(tfr)}</th>
 		<th>${round_2(calc_lifespan())}</th>
 		<th>${round_2(calc_birth_mean())}</th>
+		<th>${round_2(working_age)+"/"+round_2(retirement_age)}</th>
+		<th>${round_2(calc_dependency_ratio())}</th>
 		</tr>`
 	update_chart();
 	update_menus();
@@ -1684,7 +1828,8 @@ document.getElementById("control_menu").innerHTML += `
 	<button id="immigration_button" onclick="toggle_menu(immigration_menu,this,'Immigration')">Open Immigration Menu</button>
 	<button id="birthrate_button" onclick="toggle_menu(birthrate_menu,this,'Birthrate')">Open Birthrate Menu</button>
 	<button id="lifespan_button" onclick="toggle_menu(lifespan_menu,this,'Lifespan')">Open Lifespan Menu</button>
-	<button id="trend_button" onclick="toggle_menu(trend_menu,this,'Trends')">See Queued Trends</button>
+	<button id="trend_button" onclick="toggle_menu(trend_menu,this,'Trends')">See Allocated Trends</button>
+	<button id="dependency_button" onclick="toggle_menu(dependency_menu,this,'Dependency')">Open Dependency Menu</button>
 `
 calc_max_value();
 for (let age in pop_table) {
@@ -1706,6 +1851,8 @@ document.getElementById("post_chart").innerHTML += `
 	<th>TFR</th>
 	<th>Life Expectancy</th>
 	<th>Mean Childbearing</th>
+	<th>Working/Retirement Age</th>
+	<th>Dependency Ratio</th>
 	</tr></thead>
 	
 	<tbody id="historical_table"></tbody></table>`
@@ -1720,6 +1867,8 @@ document.getElementById("historical_table").innerHTML += `
 	<th>-</th>
 	<th>${round_2(calc_lifespan())}</th>
 	<th>${round_2(calc_birth_mean())}</th>
+	<th>${working_age+"/"+retirement_age}</th>
+	<th>${round_2(calc_dependency_ratio())}</th>
 	</tr>`
 
 </script>
